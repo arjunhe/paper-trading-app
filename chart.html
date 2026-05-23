@@ -1,0 +1,5368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Crypto Candlestick Chart</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: rgba(18, 28, 47, 0.94);
+            --panel-alt: #18243b;
+            --border: rgba(148, 163, 184, 0.18);
+            --text: #e5edf5;
+            --muted: #94a3b8;
+            --green: #00ff88;
+            --red: #ff3b3b;
+            --blue: #38bdf8;
+            --warning: #f59e0b;
+            --grid: rgba(148, 163, 184, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at top left, rgba(0, 255, 136, 0.08), transparent 24%),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 28%),
+                linear-gradient(180deg, #0f172a 0%, var(--bg) 100%);
+            color: var(--text);
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            overflow: hidden;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+            touch-action: manipulation;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: 18px;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        #app.hidden-app {
+            display: none;
+        }
+
+        .auth-shell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+        }
+
+        .auth-shell.hidden {
+            display: none;
+        }
+
+        .auth-card {
+            width: min(460px, 100%);
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            background: rgba(12, 19, 33, 0.88);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(14px);
+        }
+
+        .auth-title {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .auth-subtitle {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .auth-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .auth-actions {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .auth-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+
+        .auth-switch {
+            color: var(--blue);
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            border: 0;
+            padding: 0;
+        }
+
+        .auth-error {
+            min-height: 18px;
+            color: #ff9a9a;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .auth-success {
+            color: var(--green);
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .remember-row input {
+            width: 16px;
+            height: 16px;
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+        .user-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+            max-width: 180px;
+            text-align: center;
+        }
+
+        .topbar {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px);
+        }
+
+        .topbar {
+            display: grid;
+            grid-template-columns: minmax(240px, 300px) minmax(260px, 1fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 14px;
+            position: relative;
+            z-index: 200;
+        }
+
+        .symbol-box,
+        .limit-box,
+        .action-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .symbol-box {
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .watchlist-button {
+            width: 40px;
+            min-width: 40px;
+            height: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.92);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 800;
+            transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .watchlist-button.active {
+            color: #facc15;
+            border-color: rgba(250, 204, 21, 0.45);
+            box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.14);
+        }
+
+        .symbol-field {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .search-stack {
+            display: grid;
+            gap: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .symbol-input,
+        .limit-input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 12px;
+            background: var(--panel-alt);
+            color: var(--text);
+            padding: 0 12px;
+            outline: none;
+        }
+
+        .symbol-input {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .limit-input {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .symbol-input:focus,
+        .limit-input:focus {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+        }
+
+        .symbol-suggestions,
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px;
+            border: 1px solid #333;
+            border-radius: 12px;
+            background: #111;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+            z-index: 999999;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 6px;
+        }
+
+        .symbol-suggestions.open,
+        .search-dropdown.open {
+            display: flex;
+        }
+
+        .symbol-option {
+            border: 0;
+            border-radius: 10px;
+            background: rgba(24, 36, 59, 0.75);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .symbol-option:hover {
+            background: rgba(56, 189, 248, 0.18);
+        }
+
+        .primary-button,
+        .tf-button,
+        .trade-button,
+        .ghost-button,
+        .history-button {
+            border: 0;
+            border-radius: 12px;
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .primary-button,
+        .trade-button,
+        .ghost-button,
+        .history-button {
+            height: 40px;
+            padding: 0 14px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .primary-button {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        }
+
+        .price-box {
+            min-width: 0;
+        }
+
+        .price-symbol {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .price-meta {
+            display: grid;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .price-value {
+            font-size: clamp(30px, 4vw, 42px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .price-change {
+            font-size: clamp(15px, 1.8vw, 18px);
+            font-weight: 700;
+        }
+
+        .price-inr,
+        .sub-value {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .timeframes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tf-button {
+            min-width: 56px;
+            height: 34px;
+            padding: 0 12px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .trade-toolbar {
+            display: grid;
+            gap: 8px;
+            justify-items: end;
+        }
+
+        .trade-toolbar-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tf-button.active {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(14, 165, 233, 0.2));
+            border-color: rgba(0, 255, 136, 0.38);
+            box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.15);
+        }
+
+        .history-button,
+        .ghost-button {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .main-layout,
+        .dashboard,
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 14px;
+            padding: 16px 18px;
+            overflow: hidden;
+        }
+
+        .main-layout {
+            height: 100vh;
+        }
+
+        .workspace {
+            flex: 1;
+            min-height: 0;
+            padding-top: 0;
+        }
+
+        .chart-column,
+        .side-column {
+            min-height: 0;
+        }
+
+        .chart-column {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .side-column {
+            display: grid;
+            gap: 14px;
+            align-content: start;
+            min-width: 0;
+            width: 300px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .watchlist-card {
+            background: rgba(12, 19, 33, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .watchlist-list {
+            display: grid;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .watchlist-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(24, 36, 59, 0.7);
+        }
+
+        .watchlist-item-main {
+            min-width: 0;
+        }
+
+        .watchlist-symbol {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .watchlist-price {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .watchlist-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .watchlist-mini {
+            min-width: 68px;
+            height: 34px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.92);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 0 10px;
+        }
+
+        .control-stack {
+            display: grid;
+            gap: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .stat-card,
+        .position-card,
+        .control-card {
+            background: rgba(12, 19, 33, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 16px;
+        }
+
+        .stat-card {
+            padding: 11px 12px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .stat-note {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .positive {
+            color: var(--green);
+        }
+
+        .negative {
+            color: var(--red);
+        }
+
+        .flat {
+            color: var(--muted);
+        }
+
+        .position-card {
+            margin-top: 10px;
+            padding: 12px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            margin: 0 0 10px;
+        }
+
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .position-item {
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(24, 36, 59, 0.7);
+        }
+
+        .position-item-label {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .position-item-value {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .control-card {
+            padding: 12px;
+        }
+
+        .control-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .trade-button.buy {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.22), rgba(16, 185, 129, 0.42));
+            border: 1px solid rgba(0, 255, 136, 0.28);
+        }
+
+        .trade-button.sell {
+            background: linear-gradient(135deg, rgba(255, 59, 59, 0.2), rgba(239, 68, 68, 0.42));
+            border: 1px solid rgba(255, 59, 59, 0.26);
+        }
+
+        .trade-button.limit {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(37, 99, 235, 0.38));
+            border: 1px solid rgba(56, 189, 248, 0.24);
+        }
+
+        .trade-button:disabled,
+        .primary-button:disabled,
+        .ghost-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+            transform: none;
+        }
+
+        .pending-list {
+            display: grid;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .pending-order {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(24, 36, 59, 0.7);
+        }
+
+        .pending-badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .pending-badge.buy {
+            background: rgba(0, 255, 136, 0.14);
+            color: var(--green);
+        }
+
+        .pending-badge.sell {
+            background: rgba(255, 59, 59, 0.14);
+            color: var(--red);
+        }
+
+        .pending-meta {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .status-row {
+            min-height: 20px;
+            padding: 0 6px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-row.error {
+            color: #ff9a9a;
+        }
+
+        .chart-shell {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            height: auto;
+            max-height: none;
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            overflow: hidden;
+            background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(11, 18, 32, 0.98)),
+                radial-gradient(circle at center, rgba(30, 41, 59, 0.18), transparent 55%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 20px 50px rgba(0, 0, 0, 0.28);
+        }
+
+        .chart-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+        }
+
+        #mainChart {
+            flex: 1;
+            position: relative;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        #dashboard {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        #rsiPanel {
+            flex: 1;
+        }
+
+        #volumePanel {
+            flex: 1;
+        }
+
+        .panel {
+            border-top: 1px solid #334155;
+            position: relative;
+            min-height: 0;
+        }
+
+        .indicator-header {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .indicator-close {
+            border: 0;
+            background: transparent;
+            color: #ff8a8a;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 0;
+        }
+
+        .indicator-chart-host {
+            width: 100%;
+            height: 100%;
+        }
+
+        .hover-info-bar,
+        .ohlc-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 6;
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            color: #e5edf5;
+            font-size: 12px;
+            font-weight: 600;
+            width: fit-content;
+            max-width: max-content;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        #pnlBox {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e5edf5;
+            width: fit-content;
+            max-width: max-content;
+            pointer-events: none;
+            z-index: 6;
+            display: none;
+            white-space: nowrap;
+        }
+
+        #indicatorPanel {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px;
+            z-index: 1000;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .indicator-item {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .indicator-item:hover {
+            background: #1e293b;
+        }
+
+        #drawPanel {
+            position: absolute;
+            top: 40px;
+            right: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        #drawPanel div {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        #drawPanel div:hover {
+            background: #1e293b;
+        }
+
+        #drawPanel input,
+        #drawPanel button {
+            width: 100%;
+            margin-top: 8px;
+            height: 34px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #111827;
+            color: #fff;
+        }
+
+        #drawPanel input {
+            padding: 4px 6px;
+        }
+
+        #drawPanel button {
+            cursor: pointer;
+            background: #1e293b;
+        }
+
+        #rsiSettings {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        #rsiSettings input {
+            height: 34px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+        }
+
+        #rsiSettings button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #maPanel {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        #maPanel input {
+            height: 34px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #111;
+            color: #fff;
+        }
+
+        #maPanel button {
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #maList {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .ma-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .ma-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .ma-remove {
+            cursor: pointer;
+            color: red;
+        }
+
+        #chart {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #drawCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 18, 32, 0.72);
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .overlay.hidden,
+        .history-drawer.hidden,
+        .drawer-backdrop.hidden {
+            display: none;
+        }
+
+        .history-drawer {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            bottom: 18px;
+            width: min(680px, calc(100vw - 36px));
+            background: rgba(10, 16, 29, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 22px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .drawer-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.45);
+            z-index: 9997;
+        }
+
+        .trade-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.55);
+            z-index: 999999;
+            padding: 18px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .trade-modal.hidden {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .trade-modal.is-open {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            z-index: 999999 !important;
+        }
+
+        .trade-modal-card {
+            display: block;
+            position: relative;
+            z-index: 10000;
+            opacity: 1;
+            visibility: visible;
+            width: min(400px, 100%);
+            max-height: 80vh;
+            background: rgba(10, 16, 29, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 22px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+            overflow-y: auto;
+        }
+
+        .trade-modal-header,
+        .trade-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .trade-modal-footer {
+            border-bottom: 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .trade-form {
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: grid;
+            gap: 6px;
+        }
+
+        .form-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .form-helper {
+            margin-top: 4px;
+            color: #a5b4c7;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .form-select,
+        .form-input {
+            width: 100%;
+            height: 40px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 12px;
+            background: var(--panel-alt);
+            color: var(--text);
+            padding: 0 14px;
+            outline: none;
+        }
+
+        .form-select:focus,
+        .form-input:focus {
+            border-color: rgba(56, 189, 248, 0.5);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+        }
+
+        .ticket-summary {
+            padding: 14px;
+            border-radius: 14px;
+            background: rgba(24, 36, 59, 0.7);
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .form-error {
+            min-height: 18px;
+            color: #ff9a9a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .table-wrap {
+            flex: 1;
+            overflow: auto;
+            padding: 0 18px 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            vertical-align: top;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: rgba(18, 28, 47, 0.9);
+            color: #e5edf5;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        thead tr {
+            background: rgba(18, 28, 47, 0.9);
+        }
+
+        .empty-table {
+            padding: 16px 0;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .toast-stack {
+            position: fixed;
+            right: 28px;
+            bottom: 28px;
+            display: grid;
+            gap: 10px;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 260px;
+            max-width: 360px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .toast.success {
+            color: var(--green);
+        }
+
+        .toast.error {
+            color: #ffb4b4;
+        }
+
+        .toast.info {
+            color: var(--blue);
+        }
+
+        @media (max-width: 1240px) {
+            .topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .workspace,
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 0;
+            }
+
+            .side-column,
+            #dashboard {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #app {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .topbar {
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .symbol-input,
+            .limit-input,
+            .form-select,
+            .form-input,
+            .primary-button,
+            .trade-button,
+            .ghost-button,
+            .history-button {
+                height: 46px;
+            }
+
+            .tf-button {
+                min-width: 64px;
+                height: 40px;
+            }
+
+            .stats-grid,
+            .position-grid,
+            .control-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .trade-toolbar {
+                justify-items: stretch;
+            }
+
+            .trade-toolbar-buttons {
+                width: 100%;
+            }
+
+            .trade-toolbar-buttons button {
+                flex: 1;
+            }
+
+            .control-stack,
+            .pending-list,
+            .watchlist-list {
+                max-height: none;
+                overflow: visible;
+                padding-right: 0;
+            }
+
+            .overlay {
+                padding: 18px;
+                font-size: 15px;
+                text-align: center;
+            }
+
+            .history-drawer {
+                top: 12px;
+                right: 12px;
+                bottom: 12px;
+                width: calc(100vw - 24px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            #app {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .auth-shell {
+                padding: 12px;
+            }
+
+            .auth-card {
+                padding: 18px 16px;
+                border-radius: 18px;
+            }
+
+            .auth-title {
+                font-size: 24px;
+            }
+
+            .topbar {
+                border-radius: 16px;
+                padding: 10px;
+            }
+
+            .timeframes {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .watchlist-item {
+                grid-template-columns: 1fr;
+            }
+
+            .watchlist-actions {
+                justify-content: flex-start;
+            }
+
+            .tf-button,
+            .primary-button,
+            .trade-button,
+            .ghost-button,
+            .history-button {
+                width: 100%;
+            }
+
+            .stats-grid,
+            .position-grid,
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-shell,
+            #mainChart {
+                min-height: 320px;
+            }
+
+            .panel {
+                min-height: 110px;
+            }
+
+            .trade-modal {
+                padding: 10px;
+            }
+
+            .trade-modal-card {
+                width: min(400px, calc(100vw - 20px));
+                max-height: 88vh;
+            }
+
+            .history-drawer {
+                top: 8px;
+                right: 8px;
+                bottom: 8px;
+                width: calc(100vw - 16px);
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="authShell" class="auth-shell">
+        <div class="auth-card">
+            <h1 id="authTitle" class="auth-title">Welcome back</h1>
+            <p id="authSubtitle" class="auth-subtitle">Sign in to continue into your local paper trading workspace.</p>
+            <div class="auth-form">
+                <div id="signupUsernameGroup" class="form-group hidden-field">
+                    <label class="form-label" for="signupUsernameInput">Username</label>
+                    <input id="signupUsernameInput" class="form-input" type="text" autocomplete="username" placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="authEmailInput">Email</label>
+                    <input id="authEmailInput" class="form-input" type="email" autocomplete="email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="authPasswordInput">Password</label>
+                    <input id="authPasswordInput" class="form-input" type="password" autocomplete="current-password" placeholder="Enter your password">
+                </div>
+                <div id="confirmPasswordGroup" class="form-group hidden-field">
+                    <label class="form-label" for="confirmPasswordInput">Confirm Password</label>
+                    <input id="confirmPasswordInput" class="form-input" type="password" autocomplete="new-password" placeholder="Confirm your password">
+                </div>
+                <div class="remember-row">
+                    <input id="rememberMeInput" type="checkbox" checked>
+                    <label for="rememberMeInput">Remember me on this device</label>
+                </div>
+                <div id="authMessage" class="auth-error"></div>
+            </div>
+            <div class="auth-actions">
+                <button id="authSubmitButton" class="primary-button" type="button">Login</button>
+            </div>
+            <div class="auth-footer">
+                <span id="authFooterText">Need an account?</span>
+                <button id="authSwitchButton" class="auth-switch" type="button">Create one</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="hidden-app">
+        <div class="topbar">
+            <div class="search-stack">
+                <div class="symbol-box">
+                    <div class="symbol-field">
+                        <input id="symbolInput" class="symbol-input" type="text" value="BTCUSDT" spellcheck="false"
+                            autocomplete="off">
+                        <div id="symbolSuggestions" class="symbol-suggestions search-dropdown"></div>
+                    </div>
+                    <button id="watchlistToggleButton" class="watchlist-button" type="button" aria-label="Toggle favorite" aria-pressed="false">★</button>
+                    <button id="applyButton" class="primary-button" type="button">Load</button>
+                </div>
+                <div class="timeframes">
+                    <button class="tf-button" data-timeframe="1m" type="button">1m</button>
+                    <button class="tf-button active" data-timeframe="5m" type="button">5m</button>
+                    <button class="tf-button" data-timeframe="15m" type="button">15m</button>
+                    <button class="tf-button" data-timeframe="1h" type="button">1h</button>
+                    <button id="indicatorBtn" class="tf-button" type="button">Indicators</button>
+                    <button id="drawToolsBtn" class="tf-button" type="button">Draw</button>
+                </div>
+            </div>
+
+            <div class="price-box">
+                <div id="priceSymbol" class="price-symbol">BTCUSDT</div>
+                <div class="price-row">
+                    <div id="priceValue" class="price-value">--</div>
+                    <div id="priceChange" class="price-change flat">--</div>
+                </div>
+                <div class="price-meta">
+                    <div id="priceInr" class="price-inr">₹-- INR</div>
+                </div>
+            </div>
+
+            <div class="trade-toolbar">
+                <div class="trade-toolbar-buttons">
+                    <button id="showBuy" class="trade-button buy" type="button">BUY</button>
+                    <button id="showSell" class="trade-button sell" type="button">SELL</button>
+                </div>
+                <div class="action-row" style="justify-content: flex-end; flex-wrap: wrap;">
+                    <div id="currentUserChip" class="user-chip">Guest</div>
+                    <button id="historyButton" class="history-button" type="button">History</button>
+                    <button id="logoutButton" class="ghost-button" type="button">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace dashboard main-layout">
+            <div class="chart-column">
+                <div class="chart-wrapper">
+                    <div id="mainChart" class="chart-shell">
+                        <div id="hoverInfoBar" class="hover-info-bar ohlc-box">O: -- H: -- L: -- C: --</div>
+                        <div id="pnlBox"></div>
+                        <div id="indicatorPanel" class="hidden">
+                            <div class="indicator-item" data-type="ma">Moving Average</div>
+                            <div class="indicator-item" data-type="rsi">RSI</div>
+                            <div class="indicator-item" data-type="volume">Volume</div>
+                            <div id="maPanel" class="hidden">
+                                <input id="maPeriodInput" type="number" placeholder="MA Period (e.g. 10)" />
+                                <input id="maColorInput" type="color" value="#facc15" />
+                                <button id="addMaButton" type="button">Add MA</button>
+                            </div>
+                            <div id="maList" class="hidden"></div>
+                            <div id="rsiSettings" class="hidden">
+                                <input id="rsiPeriodInput" type="number" value="14" />
+                                <button id="applyRSI" type="button">Apply RSI</button>
+                            </div>
+                        </div>
+                        <div id="drawPanel" class="hidden">
+                            <div data-tool="trend">Trend Line</div>
+                            <div data-tool="ray">Ray</div>
+                            <div data-tool="horizontal">Horizontal Line</div>
+                            <div id="clearDrawings">Clear All</div>
+                            <input type="color" id="drawColor" value="#facc15">
+                            <button id="deleteLine" type="button">Delete Selected</button>
+                        </div>
+                        <div id="chart">
+                            <canvas id="drawCanvas"></canvas>
+                        </div>
+                        <div id="overlay" class="overlay">Loading chart library...</div>
+                    </div>
+                    <div id="rsiPanel" class="panel hidden">
+                        <div id="rsiHeader" class="indicator-header">RSI <button id="removeRSI" class="indicator-close"
+                                type="button">X</button></div>
+                        <div id="rsiChartHost" class="indicator-chart-host"></div>
+                    </div>
+                    <div id="volumePanel" class="panel hidden">
+                        <div id="volumeHeader" class="indicator-header">Volume <button id="removeVolume"
+                                class="indicator-close" type="button">X</button></div>
+                        <div id="volumeChartHost" class="indicator-chart-host"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-column" id="dashboard">
+                <div class="watchlist-card">
+                    <div class="action-row" style="justify-content: space-between; margin-bottom: 12px;">
+                        <h3 class="section-title" style="margin: 0;">Watchlist</h3>
+                        <div class="stat-note">Saved per user</div>
+                    </div>
+                    <div id="watchlistList" class="watchlist-list">
+                        <div class="empty-table">No favorites yet.</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Current Balance</div>
+                        <div id="balanceValue" class="stat-value">10,000.00 USDT</div>
+                        <div id="balanceInr" class="stat-note">₹930,000.00 INR</div>
+                        <div id="balanceNote" class="stat-note">Available cash: 10,000.00 USDT</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Open Trade PnL</div>
+                        <div id="openPnlValue" class="stat-value flat">0.00 USDT</div>
+                        <div id="openPnlInr" class="stat-note">₹0.00 INR</div>
+                        <div id="openPnlNote" class="stat-note">No active position</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Profit %</div>
+                        <div id="profitPercentValue" class="stat-value flat">0.00%</div>
+                        <div id="profitPercentNote" class="stat-note">Based on account equity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending Orders</div>
+                        <div id="pendingCountValue" class="stat-value">0</div>
+                        <div id="pendingCountNote" class="stat-note">No pending limit orders</div>
+                    </div>
+                </div>
+
+                <div class="control-stack">
+                    <div class="position-card">
+                        <h3 class="section-title">Open Position</h3>
+                        <div class="position-grid">
+                            <div class="position-item">
+                                <div class="position-item-label">Symbol</div>
+                                <div id="positionSymbol" class="position-item-value">No position</div>
+                            </div>
+                            <div class="position-item">
+                                <div class="position-item-label">Entry Price (Buy Price)</div>
+                                <div id="positionEntry" class="position-item-value">--</div>
+                            </div>
+                            <div class="position-item">
+                                <div class="position-item-label">Quantity</div>
+                                <div id="positionQuantity" class="position-item-value">--</div>
+                            </div>
+                            <div class="position-item">
+                                <div class="position-item-label">Entry Time</div>
+                                <div id="positionTime" class="position-item-value">--</div>
+                            </div>
+                            <div class="position-item">
+                                <div class="position-item-label">Stop Loss</div>
+                                <div id="positionStopLoss" class="position-item-value">--</div>
+                            </div>
+                            <div class="position-item">
+                                <div class="position-item-label">Take Profit</div>
+                                <div id="positionTakeProfit" class="position-item-value">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="action-row" style="justify-content: space-between; margin-bottom: 12px;">
+                            <h3 class="section-title" style="margin: 0;">Pending Orders</h3>
+                            <button id="clearOrdersButton" class="ghost-button" type="button">Clear Pending</button>
+                        </div>
+                        <div id="pendingOrdersList" class="pending-list">
+                            <div class="pending-order">
+                                <div class="pending-badge buy">Empty</div>
+                                <div>
+                                    <div>No pending orders</div>
+                                    <div class="pending-meta">Place a limit order to queue it here.</div>
+                                </div>
+                                <button class="ghost-button" type="button" disabled>Idle</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="statusRow" class="status-row"></div>
+    </div>
+
+    <div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+    <div id="tradeModal" class="trade-modal hidden">
+        <div class="trade-modal-card">
+            <div class="trade-modal-header">
+                <div>
+                    <div id="tradeModalTitle" class="section-title" style="margin-bottom: 4px;">Buy Order</div>
+                    <div id="tradeModalSubtitle" style="color: var(--muted); font-size: 13px;">Create a paper trade
+                        ticket</div>
+                </div>
+                <button id="closeTradeModalButton" class="ghost-button" type="button">Close</button>
+            </div>
+            <div class="trade-form">
+                <div class="form-group">
+                    <label class="form-label" for="orderTypeSelect">Order Type</label>
+                    <select id="orderTypeSelect" class="form-select">
+                        <option value="market">Market Order</option>
+                        <option value="limit">Limit Order</option>
+                    </select>
+                </div>
+                <div id="amountGroup" class="form-group">
+                    <label class="form-label" for="modalAmountInput">Amount (USDT)</label>
+                    <input id="modalAmountInput" class="form-input" type="number" min="0" step="0.01"
+                        placeholder="Enter order amount">
+                </div>
+                <div id="limitPriceGroup" class="form-group hidden-field">
+                    <label class="form-label" for="modalLimitPriceInput">Limit Price</label>
+                    <input id="modalLimitPriceInput" class="form-input" type="number" min="0" step="0.01"
+                        placeholder="Enter limit price">
+                </div>
+                <div id="stopLossGroup" class="form-group">
+                    <label class="form-label" for="modalStopLossInput">Stop Loss Price</label>
+                    <input id="modalStopLossInput" class="form-input" type="number" min="0" step="0.01"
+                        placeholder="Optional stop loss">
+                    <div class="form-helper">Stop Loss must be BELOW current market price</div>
+                </div>
+                <div id="takeProfitGroup" class="form-group">
+                    <label class="form-label" for="modalTakeProfitInput">Take Profit Price</label>
+                    <input id="modalTakeProfitInput" class="form-input" type="number" min="0" step="0.01"
+                        placeholder="Optional take profit">
+                    <div class="form-helper">Take Profit must be ABOVE current market price</div>
+                </div>
+                <div id="tradeTicketSummary" class="ticket-summary"></div>
+                <div id="tradeValidationMessage" class="form-error"></div>
+            </div>
+            <div class="trade-modal-footer">
+                <button id="cancelTradeButton" class="ghost-button" type="button">Cancel</button>
+                <button id="confirmTradeButton" class="trade-button buy" type="button">Confirm BUY</button>
+            </div>
+        </div>
+    </div>
+    <aside id="historyDrawer" class="history-drawer hidden">
+        <div class="drawer-header">
+            <div>
+                <div class="section-title" style="margin-bottom: 4px;">Trade History</div>
+                <div style="color: var(--muted); font-size: 13px;">Completed paper trades for this session</div>
+            </div>
+            <button id="closeHistoryButton" class="ghost-button" type="button">Close</button>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Buy</th>
+                        <th>Sell</th>
+                        <th>Qty</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>PnL</th>
+                        <th>%</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td colspan="8" class="empty-table">No completed trades yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </aside>
+
+    <div id="toastStack" class="toast-stack"></div>
+
+    <script>
+        let bridge = null;
+        let chart = null;
+        let series = null;
+        let rsiChart = null;
+        let rsiSeries = null;
+        let volumeChart = null;
+        let volumeSeries = null;
+        let rsiPeriod = 14;
+        let indicatorSyncBound = false;
+        let currentTool = null;
+        let drawings = [];
+        let selectedLine = null;
+        let isDragging = false;
+        let dragStart = null;
+        let currentColor = "#facc15";
+        let tempPoints = [];
+        let entryLine = null;
+        let stopLossLine = null;
+        let takeProfitLine = null;
+        let maList = [];
+        let currentData = [];
+        let isLoadingData = false;
+        let activeSymbol = "BTCUSDT";
+        let activeTimeframe = "5m";
+        let browserSocket = null;
+        let resizeFrame = null;
+        let redrawFrame = null;
+        let appStarted = false;
+        let authMode = "login";
+        let currentUser = null;
+        let supabaseClientPromise = null;
+        let supabaseClient = null;
+        let supabaseErrorShown = false;
+        let supabaseLoadAttempts = 0;
+
+        const appRoot = document.getElementById("app");
+        const authShell = document.getElementById("authShell");
+        const authTitle = document.getElementById("authTitle");
+        const authSubtitle = document.getElementById("authSubtitle");
+        const signupUsernameGroup = document.getElementById("signupUsernameGroup");
+        const signupUsernameInput = document.getElementById("signupUsernameInput");
+        const authEmailInput = document.getElementById("authEmailInput");
+        const authPasswordInput = document.getElementById("authPasswordInput");
+        const confirmPasswordGroup = document.getElementById("confirmPasswordGroup");
+        const confirmPasswordInput = document.getElementById("confirmPasswordInput");
+        const rememberMeInput = document.getElementById("rememberMeInput");
+        const authMessage = document.getElementById("authMessage");
+        const authSubmitButton = document.getElementById("authSubmitButton");
+        const authFooterText = document.getElementById("authFooterText");
+        const authSwitchButton = document.getElementById("authSwitchButton");
+        const chartContainer = document.getElementById("mainChart");
+        const overlay = document.getElementById("overlay");
+        const statusRow = document.getElementById("statusRow");
+        const symbolInput = document.getElementById("symbolInput");
+        const symbolSuggestions = document.getElementById("symbolSuggestions");
+        const watchlistToggleButton = document.getElementById("watchlistToggleButton");
+        const applyButton = document.getElementById("applyButton");
+        const indicatorBtn = document.getElementById("indicatorBtn");
+        const indicatorPanel = document.getElementById("indicatorPanel");
+        const drawToolsBtn = document.getElementById("drawToolsBtn");
+        const drawPanel = document.getElementById("drawPanel");
+        const clearDrawingsButton = document.getElementById("clearDrawings");
+        const drawColorInput = document.getElementById("drawColor");
+        const deleteLineButton = document.getElementById("deleteLine");
+        const rsiPanel = document.getElementById("rsiPanel");
+        const volumePanel = document.getElementById("volumePanel");
+        const rsiChartHost = document.getElementById("rsiChartHost");
+        const volumeChartHost = document.getElementById("volumeChartHost");
+        const removeRSIButton = document.getElementById("removeRSI");
+        const removeVolumeButton = document.getElementById("removeVolume");
+        const rsiSettings = document.getElementById("rsiSettings");
+        const rsiPeriodInput = document.getElementById("rsiPeriodInput");
+        const applyRSIButton = document.getElementById("applyRSI");
+        const maPanel = document.getElementById("maPanel");
+        const maPeriodInput = document.getElementById("maPeriodInput");
+        const maColorInput = document.getElementById("maColorInput");
+        const addMaButton = document.getElementById("addMaButton");
+        const maListContainer = document.getElementById("maList");
+        const priceSymbol = document.getElementById("priceSymbol");
+        const priceValue = document.getElementById("priceValue");
+        const priceChange = document.getElementById("priceChange");
+        const timeframeButtons = Array.from(document.querySelectorAll(".tf-button"));
+        const historyButton = document.getElementById("historyButton");
+        const closeHistoryButton = document.getElementById("closeHistoryButton");
+        const drawerBackdrop = document.getElementById("drawerBackdrop");
+        const historyDrawer = document.getElementById("historyDrawer");
+        const toastStack = document.getElementById("toastStack");
+
+        const clearOrdersButton = document.getElementById("clearOrdersButton");
+        const watchlistList = document.getElementById("watchlistList");
+        const pendingOrdersList = document.getElementById("pendingOrdersList");
+        const historyTableBody = document.getElementById("historyTableBody");
+        const openBuyModalButton = document.getElementById("showBuy");
+        const openSellModalButton = document.getElementById("showSell");
+        const tradeModal = document.getElementById("tradeModal");
+        const closeTradeModalButton = document.getElementById("closeTradeModalButton");
+        const cancelTradeButton = document.getElementById("cancelTradeButton");
+        const tradeModalTitle = document.getElementById("tradeModalTitle");
+        const tradeModalSubtitle = document.getElementById("tradeModalSubtitle");
+        const confirmTradeButton = document.getElementById("confirmTradeButton");
+        const orderTypeSelect = document.getElementById("orderTypeSelect");
+        const amountGroup = document.getElementById("amountGroup");
+        const limitPriceGroup = document.getElementById("limitPriceGroup");
+        const stopLossGroup = document.getElementById("stopLossGroup");
+        const takeProfitGroup = document.getElementById("takeProfitGroup");
+        const modalAmountInput = document.getElementById("modalAmountInput");
+        const modalLimitPriceInput = document.getElementById("modalLimitPriceInput");
+        const modalStopLossInput = document.getElementById("modalStopLossInput");
+        const modalTakeProfitInput = document.getElementById("modalTakeProfitInput");
+        const tradeTicketSummary = document.getElementById("tradeTicketSummary");
+        const tradeValidationMessage = document.getElementById("tradeValidationMessage");
+        const hoverInfoBar = document.getElementById("hoverInfoBar");
+        const pnlBox = document.getElementById("pnlBox");
+        const drawCanvas = document.getElementById("drawCanvas");
+        const drawContext = drawCanvas.getContext("2d");
+        const mainChartShell = document.getElementById("mainChart");
+
+        const balanceValue = document.getElementById("balanceValue");
+        const balanceInr = document.getElementById("balanceInr");
+        const balanceNote = document.getElementById("balanceNote");
+        const openPnlValue = document.getElementById("openPnlValue");
+        const openPnlInr = document.getElementById("openPnlInr");
+        const openPnlNote = document.getElementById("openPnlNote");
+        const profitPercentValue = document.getElementById("profitPercentValue");
+        const pendingCountValue = document.getElementById("pendingCountValue");
+        const pendingCountNote = document.getElementById("pendingCountNote");
+        const currentUserChip = document.getElementById("currentUserChip");
+        const logoutButton = document.getElementById("logoutButton");
+        const positionSymbol = document.getElementById("positionSymbol");
+        const positionEntry = document.getElementById("positionEntry");
+        const positionQuantity = document.getElementById("positionQuantity");
+        const positionTime = document.getElementById("positionTime");
+        const positionStopLoss = document.getElementById("positionStopLoss");
+        const positionTakeProfit = document.getElementById("positionTakeProfit");
+        const priceInr = document.getElementById("priceInr");
+
+        // Trading Logic
+        const trades = [];
+        const pendingOrders = [];
+        const tradingState = {
+            initialBalance: 10000,
+            cashBalance: 10000,
+            position: null,
+            pendingOrders,
+            trades,
+            lastPrices: {},
+            lastVisiblePrice: null,
+            orderSequence: 1,
+            modalSide: "buy",
+        };
+        const DEFAULT_SYMBOLS = [
+            "BTCUSDT", "ETHUSDT", "SOLUSDT",
+            "XRPUSDT", "DOGEUSDT", "BNBUSDT",
+            "ADAUSDT", "AVAXUSDT", "LTCUSDT"
+        ];
+        let availableSymbols = [...DEFAULT_SYMBOLS];
+        const USDT_TO_INR = 93;
+        const BINANCE_REST_URL = "https://api.binance.com/api/v3/klines";
+        const BINANCE_EXCHANGE_INFO_URL = "https://api.binance.com/api/v3/exchangeInfo";
+        const VALID_INTERVALS = new Set(["1m", "5m", "15m", "1h"]);
+        const SUPABASE_URL = "https://vsdszhobgrlawxskmdat.supabase.co";
+        const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XnHrFq_xoNT5TNUA-LAD8g_9HJOpbEj";
+        const indicators = {
+            rsi: null,
+            volume: null,
+            ma: maList,
+        };
+
+        function getRememberPreference() {
+            return localStorage.getItem("paperTradingRememberSession") === "true";
+        }
+
+        function setRememberPreference(shouldRemember) {
+            localStorage.setItem("paperTradingRememberSession", shouldRemember ? "true" : "false");
+        }
+
+        function clearLegacyAuthStorage() {
+            localStorage.removeItem("paperTradingAccounts");
+            localStorage.removeItem("paperTradingSession");
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
+        }
+
+        function notifySupabaseUnavailable(error) {
+            const message = error?.message || "Supabase is unavailable. Watchlist sync is temporarily offline.";
+            try {
+                console.error(JSON.stringify(error));
+            } catch (_serializationError) {
+                console.error(error);
+            }
+            console.error(error?.message || "Unknown Supabase error");
+            if (!supabaseErrorShown) {
+                supabaseErrorShown = true;
+                showToast(message, "error");
+            }
+            setStatus(message, true);
+        }
+
+        function logSupabaseError(context, error) {
+            console.error(`[supabase] ${context}`);
+            try {
+                console.error(JSON.stringify(error));
+            } catch (_serializationError) {
+                console.error(error);
+            }
+            console.error(error?.message || "Unknown Supabase error");
+        }
+
+        async function loadScriptOnce(url, marker) {
+            const existingScript = document.querySelector(`script[data-external-script="${marker}"]`);
+            if (existingScript) {
+                if (existingScript.dataset.loaded === "true") {
+                    return;
+                }
+
+                await new Promise((resolve, reject) => {
+                    existingScript.addEventListener("load", resolve, { once: true });
+                    existingScript.addEventListener("error", () => reject(new Error(`Failed to load ${url}`)), { once: true });
+                });
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.src = url;
+            script.async = true;
+            script.dataset.externalScript = marker;
+            await new Promise((resolve, reject) => {
+                script.onload = () => {
+                    script.dataset.loaded = "true";
+                    resolve();
+                };
+                script.onerror = () => reject(new Error(`Failed to load ${url}`));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function ensureSupabaseClient() {
+            if (supabaseClient) {
+                return supabaseClient;
+            }
+
+            if (!supabaseClientPromise) {
+                supabaseClientPromise = (async () => {
+                    if (window.supabase?.createClient) {
+                        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+                        return supabaseClient;
+                    }
+
+                    const sources = [
+                        {
+                            url: "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js",
+                            marker: "supabase-jsdelivr",
+                        },
+                        {
+                            url: "https://unpkg.com/@supabase/supabase-js@1.35.7/dist/umd/supabase.min.js",
+                            marker: "supabase-unpkg",
+                        },
+                    ];
+
+                    let lastError = null;
+                    supabaseLoadAttempts += 1;
+
+                    for (const source of sources) {
+                        try {
+                            await loadScriptOnce(source.url, source.marker);
+                            if (window.supabase?.createClient) {
+                                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+                                return supabaseClient;
+                            }
+                        } catch (error) {
+                            lastError = error;
+                        }
+                    }
+
+                    throw lastError || new Error("Supabase client failed to load.");
+                })().catch((error) => {
+                    supabaseClientPromise = null;
+                    if (supabaseLoadAttempts >= 1) {
+                        notifySupabaseUnavailable(error);
+                    }
+                    return null;
+                });
+            }
+
+            return supabaseClientPromise;
+        }
+
+        async function ensureCurrentUserDatabaseRecord() {
+            if (!currentUser?.email) {
+                return null;
+            }
+
+            if (currentUser.dbUserId) {
+                return currentUser.dbUserId;
+            }
+
+            const client = await ensureSupabaseClient();
+            if (!client) {
+                return null;
+            }
+            const normalizedEmail = currentUser.email.toLowerCase();
+            const lookup = currentUser.authUserId
+                ? await client
+                    .from("users")
+                    .select("id, username, email")
+                    .eq("id", currentUser.authUserId)
+                    .limit(1)
+                : await client
+                    .from("users")
+                    .select("id, username, email")
+                    .eq("email", normalizedEmail)
+                    .limit(1);
+            console.log("[supabase] users lookup response", lookup);
+
+            if (lookup.error) {
+                logSupabaseError("users lookup failed", lookup.error);
+                throw lookup.error;
+            }
+
+            let userRecord = Array.isArray(lookup.data) ? lookup.data[0] : lookup.data;
+            if (!userRecord) {
+                const insertPayload = {
+                    id: currentUser.authUserId || undefined,
+                    email: normalizedEmail,
+                    username: currentUser.username || normalizedEmail.split("@")[0],
+                };
+                const insert = await client
+                    .from("users")
+                    .insert([insertPayload]);
+                console.log("[supabase] users insert response", insert);
+
+                if (insert.error) {
+                    logSupabaseError("users insert failed", insert.error);
+                    throw insert.error;
+                }
+
+                const insertedLookup = currentUser.authUserId
+                    ? await client
+                        .from("users")
+                        .select("id, username, email")
+                        .eq("id", currentUser.authUserId)
+                        .limit(1)
+                    : await client
+                        .from("users")
+                        .select("id, username, email")
+                        .eq("email", normalizedEmail)
+                        .limit(1);
+                console.log("[supabase] users inserted lookup response", insertedLookup);
+
+                if (insertedLookup.error) {
+                    logSupabaseError("users inserted lookup failed", insertedLookup.error);
+                    throw insertedLookup.error;
+                }
+
+                userRecord = Array.isArray(insertedLookup.data) ? insertedLookup.data[0] : insertedLookup.data;
+            }
+
+            currentUser = {
+                ...currentUser,
+                username: userRecord.username || currentUser.username,
+                email: userRecord.email || currentUser.email,
+                authUserId: currentUser.authUserId || userRecord.id,
+                dbUserId: userRecord.id,
+                watchlist: Array.isArray(currentUser.watchlist) ? currentUser.watchlist : [],
+            };
+            console.log("[supabase] resolved db user id", currentUser.dbUserId);
+
+            return currentUser.dbUserId;
+        }
+
+        async function loadCurrentUserWatchlistFromDatabase() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            const userId = await ensureCurrentUserDatabaseRecord();
+            if (!userId) {
+                currentUser = {
+                    ...currentUser,
+                    watchlist: [],
+                };
+                renderWatchlist();
+                return;
+            }
+
+            const client = await ensureSupabaseClient();
+            if (!client) {
+                currentUser = {
+                    ...currentUser,
+                    watchlist: Array.isArray(currentUser.watchlist) ? currentUser.watchlist : [],
+                };
+                renderWatchlist();
+                return;
+            }
+            const result = await client
+                .from("watchlist")
+                .select("symbol")
+                .eq("user_id", userId)
+                .order("created_at", { ascending: true });
+            console.log("[supabase] watchlist select response", result);
+
+            if (result.error) {
+                logSupabaseError("watchlist select failed", result.error);
+                throw result.error;
+            }
+
+            const watchlist = Array.isArray(result.data)
+                ? result.data
+                    .map((row) => normalizeSymbol(row.symbol))
+                    .filter(Boolean)
+                : [];
+
+            currentUser = {
+                ...currentUser,
+                watchlist: Array.from(new Set(watchlist)),
+            };
+
+            renderWatchlist();
+        }
+
+        async function loadCurrentUserPaperBalanceFromDatabase() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            try {
+                const userId = await ensureCurrentUserDatabaseRecord();
+                const client = await ensureSupabaseClient();
+                console.log("[supabase] paper_balance resolved user id", userId);
+
+                if (!client || !userId) {
+                    return;
+                }
+
+                const response = await client
+                    .from("paper_balance")
+                    .select("id, user_id, balance, updated_at")
+                    .eq("user_id", userId)
+                    .order("updated_at", { ascending: false })
+                    .limit(1);
+                console.log("[supabase] paper_balance select response", response);
+
+                if (response.error) {
+                    logSupabaseError("paper_balance select failed", response.error);
+                    throw response.error;
+                }
+
+                const row = Array.isArray(response.data) ? response.data[0] : response.data;
+                if (!row) {
+                    const insertPayload = {
+                        user_id: userId,
+                        balance: tradingState.initialBalance,
+                        updated_at: new Date().toISOString(),
+                    };
+                    console.log("[supabase] paper_balance insert payload", insertPayload);
+                    const insert = await client
+                        .from("paper_balance")
+                        .insert([insertPayload]);
+                    console.log("[supabase] paper_balance insert response", insert);
+
+                    if (insert.error) {
+                        logSupabaseError("paper_balance insert failed", insert.error);
+                        throw insert.error;
+                    }
+
+                    tradingState.cashBalance = tradingState.initialBalance;
+                    return;
+                }
+
+                const balance = Number(row.balance);
+                tradingState.cashBalance = Number.isFinite(balance) ? balance : tradingState.initialBalance;
+            } catch (error) {
+                logSupabaseError("loadCurrentUserPaperBalanceFromDatabase failed", error);
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function saveCurrentUserPaperBalanceToDatabase() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            try {
+                const userId = await ensureCurrentUserDatabaseRecord();
+                const client = await ensureSupabaseClient();
+                console.log("[supabase] save paper_balance resolved user id", userId);
+
+                if (!client || !userId) {
+                    return;
+                }
+
+                const existing = await client
+                    .from("paper_balance")
+                    .select("id")
+                    .eq("user_id", userId)
+                    .order("updated_at", { ascending: false })
+                    .limit(1);
+                console.log("[supabase] paper_balance existing row response", existing);
+
+                if (existing.error) {
+                    logSupabaseError("paper_balance existing row lookup failed", existing.error);
+                    throw existing.error;
+                }
+
+                const payload = {
+                    user_id: userId,
+                    balance: tradingState.cashBalance,
+                    updated_at: new Date().toISOString(),
+                };
+                console.log("[supabase] paper_balance save payload", payload);
+
+                const existingRow = Array.isArray(existing.data) ? existing.data[0] : existing.data;
+                const result = existingRow
+                    ? await client
+                        .from("paper_balance")
+                        .update({
+                            balance: payload.balance,
+                            updated_at: payload.updated_at,
+                        })
+                        .eq("id", existingRow.id)
+                    : await client
+                        .from("paper_balance")
+                        .insert([payload]);
+                console.log("[supabase] paper_balance save response", result);
+
+                if (result.error) {
+                    logSupabaseError("paper_balance save failed", result.error);
+                    throw result.error;
+                }
+            } catch (error) {
+                logSupabaseError("saveCurrentUserPaperBalanceToDatabase failed", error);
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function loadCurrentUserTradeHistoryFromDatabase() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            try {
+                const userId = await ensureCurrentUserDatabaseRecord();
+                const client = await ensureSupabaseClient();
+                console.log("[supabase] trade_history resolved user id", userId);
+
+                if (!client || !userId) {
+                    return;
+                }
+
+                const response = await client
+                    .from("trade_history")
+                    .select("id, user_id, symbol, side, entry_price, exit_price, quantity, profit_loss, created_at")
+                    .eq("user_id", userId)
+                    .order("created_at", { ascending: true });
+                console.log("[supabase] trade_history select response", response);
+
+                if (response.error) {
+                    logSupabaseError("trade_history select failed", response.error);
+                    throw response.error;
+                }
+
+                tradingState.trades = Array.isArray(response.data)
+                    ? response.data.map((row) => {
+                        const entryPrice = Number(row.entry_price);
+                        const exitPrice = Number(row.exit_price);
+                        const quantity = Number(row.quantity);
+                        const pnl = Number(row.profit_loss);
+                        const investedAmount = entryPrice * quantity;
+                        const percentage = investedAmount ? (pnl / investedAmount) * 100 : 0;
+                        const completedAt = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+
+                        return {
+                            symbol: normalizeSymbol(row.symbol),
+                            entryPrice,
+                            exitPrice,
+                            quantity,
+                            entryTime: completedAt,
+                            exitTime: completedAt,
+                            pnl,
+                            percentage,
+                            side: row.side || "long",
+                        };
+                    })
+                    : [];
+            } catch (error) {
+                logSupabaseError("loadCurrentUserTradeHistoryFromDatabase failed", error);
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function saveTradeToDatabase(trade) {
+            if (!currentUser?.email || !trade) {
+                return;
+            }
+
+            try {
+                const userId = await ensureCurrentUserDatabaseRecord();
+                const client = await ensureSupabaseClient();
+                console.log("[supabase] save trade_history resolved user id", userId);
+
+                if (!client || !userId) {
+                    return;
+                }
+
+                const payload = {
+                    user_id: userId,
+                    symbol: normalizeSymbol(trade.symbol),
+                    side: trade.side || "long",
+                    entry_price: trade.entryPrice,
+                    exit_price: trade.exitPrice,
+                    quantity: trade.quantity,
+                    profit_loss: trade.pnl,
+                    created_at: new Date(trade.exitTime || Date.now()).toISOString(),
+                };
+                console.log("[supabase] trade_history insert payload", payload);
+
+                const insert = await client
+                    .from("trade_history")
+                    .insert([payload]);
+                console.log("[supabase] trade_history insert response", insert);
+
+                if (insert.error) {
+                    logSupabaseError("trade_history insert failed", insert.error);
+                    throw insert.error;
+                }
+            } catch (error) {
+                logSupabaseError("saveTradeToDatabase failed", error);
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function loadCurrentUserSubscriptionFromDatabase() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            try {
+                const userId = await ensureCurrentUserDatabaseRecord();
+                const client = await ensureSupabaseClient();
+                console.log("[supabase] subscription resolved user id", userId);
+
+                if (!client || !userId) {
+                    return;
+                }
+
+                const response = await client
+                    .from("subscription")
+                    .select("id, user_id, plan, status, expiry_date, created_at")
+                    .eq("user_id", userId)
+                    .order("created_at", { ascending: false })
+                    .limit(1);
+                console.log("[supabase] subscription select response", response);
+
+                if (response.error) {
+                    logSupabaseError("subscription select failed", response.error);
+                    throw response.error;
+                }
+
+                let row = Array.isArray(response.data) ? response.data[0] : response.data;
+                if (!row) {
+                    const insertPayload = {
+                        user_id: userId,
+                        plan: "free",
+                        status: "active",
+                        expiry_date: null,
+                    };
+                    console.log("[supabase] subscription insert payload", insertPayload);
+                    const insert = await client
+                        .from("subscription")
+                        .insert([insertPayload]);
+                    console.log("[supabase] subscription insert response", insert);
+
+                    if (insert.error) {
+                        logSupabaseError("subscription insert failed", insert.error);
+                        throw insert.error;
+                    }
+
+                    row = Array.isArray(insert.data) ? insert.data[0] : insert.data;
+                }
+
+                currentUser = {
+                    ...currentUser,
+                    subscription: {
+                        plan: row?.plan || "free",
+                        status: row?.status || "active",
+                        expiryDate: row?.expiry_date || null,
+                    },
+                };
+            } catch (error) {
+                logSupabaseError("loadCurrentUserSubscriptionFromDatabase failed", error);
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        function showAuthMessage(message, isError = true) {
+            authMessage.textContent = message || "";
+            authMessage.classList.toggle("auth-success", !isError && Boolean(message));
+        }
+
+        function clearAuthInputs() {
+            signupUsernameInput.value = "";
+            authEmailInput.value = "";
+            authPasswordInput.value = "";
+            confirmPasswordInput.value = "";
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode === "signup" ? "signup" : "login";
+            const isSignup = authMode === "signup";
+
+            authTitle.textContent = isSignup ? "Create your account" : "Welcome back";
+            authSubtitle.textContent = isSignup
+                ? "Set up a local account for this paper trading workspace."
+                : "Sign in to continue into your local paper trading workspace.";
+            authSubmitButton.textContent = isSignup ? "Create Account" : "Login";
+            authFooterText.textContent = isSignup ? "Already have an account?" : "Need an account?";
+            authSwitchButton.textContent = isSignup ? "Login instead" : "Create one";
+            signupUsernameGroup.classList.toggle("hidden-field", !isSignup);
+            confirmPasswordGroup.classList.toggle("hidden-field", !isSignup);
+            authPasswordInput.setAttribute("autocomplete", isSignup ? "new-password" : "current-password");
+            showAuthMessage("");
+        }
+
+        function renderCurrentUser() {
+            currentUserChip.textContent = currentUser?.username || currentUser?.email || "Guest";
+        }
+
+        function getCurrentWatchlist() {
+            return Array.isArray(currentUser?.watchlist) ? currentUser.watchlist : [];
+        }
+
+        function setCurrentWatchlistLocal(watchlist) {
+            const normalizedWatchlist = Array.from(new Set(
+                (Array.isArray(watchlist) ? watchlist : [])
+                    .map((symbol) => normalizeSymbol(symbol))
+                    .filter(Boolean)
+            ));
+
+            if (currentUser) {
+                currentUser = {
+                    ...currentUser,
+                    watchlist: normalizedWatchlist,
+                };
+            }
+        }
+
+        function updateWatchlistToggleState() {
+            const isFavorite = getCurrentWatchlist().includes(activeSymbol);
+            watchlistToggleButton.classList.toggle("active", isFavorite);
+            watchlistToggleButton.setAttribute("aria-pressed", String(isFavorite));
+            watchlistToggleButton.title = isFavorite
+                ? `Remove ${activeSymbol} from watchlist`
+                : `Add ${activeSymbol} to watchlist`;
+        }
+
+        function renderWatchlist() {
+            const watchlist = getCurrentWatchlist();
+
+            if (!watchlist.length) {
+                watchlistList.innerHTML = `<div class="empty-table">No favorites yet.</div>`;
+                updateWatchlistToggleState();
+                return;
+            }
+
+            watchlistList.innerHTML = "";
+            watchlist.forEach((symbol) => {
+                const row = document.createElement("div");
+                row.className = "watchlist-item";
+                const price = tradingState.lastPrices[symbol];
+                row.innerHTML = `
+                    <div class="watchlist-item-main">
+                        <div class="watchlist-symbol">${symbol}</div>
+                        <div class="watchlist-price">${Number.isFinite(price) ? `${formatPrice(price)} USDT` : "Tap to load"}</div>
+                    </div>
+                    <div class="watchlist-actions">
+                        <button class="watchlist-mini" type="button" data-watch-action="load" data-symbol="${symbol}">Open</button>
+                        <button class="watchlist-mini" type="button" data-watch-action="remove" data-symbol="${symbol}">Remove</button>
+                    </div>
+                `;
+                watchlistList.appendChild(row);
+            });
+
+            watchlistList.querySelectorAll("[data-watch-action]").forEach((button) => {
+                button.addEventListener("click", () => {
+                    const symbol = button.dataset.symbol;
+                    const action = button.dataset.watchAction;
+
+                    if (!symbol) {
+                        return;
+                    }
+
+                    if (action === "load") {
+                        selectSymbolOption(symbol);
+                        return;
+                    }
+
+                    if (action === "remove") {
+                        removeFromWatchlist(symbol);
+                    }
+                });
+            });
+
+            updateWatchlistToggleState();
+        }
+
+        async function addToWatchlist(symbol) {
+            const normalizedSymbol = normalizeSymbol(symbol);
+            if (!normalizedSymbol) {
+                return;
+            }
+
+            if (getCurrentWatchlist().includes(normalizedSymbol)) {
+                updateWatchlistToggleState();
+                return;
+            }
+
+            const previousWatchlist = getCurrentWatchlist();
+            setCurrentWatchlistLocal([...previousWatchlist, normalizedSymbol]);
+            renderWatchlist();
+
+            try {
+                const client = await ensureSupabaseClient();
+                if (!client) {
+                    return;
+                }
+                const userId = await ensureCurrentUserDatabaseRecord();
+                console.log("[supabase] add watchlist resolved user id", userId);
+                if (!userId) {
+                    logSupabaseError("watchlist insert blocked", new Error("Missing database user id before insert."));
+                    return;
+                }
+                const existing = await client
+                    .from("watchlist")
+                    .select("id")
+                    .eq("user_id", userId)
+                    .eq("symbol", normalizedSymbol)
+                    .limit(1);
+                console.log("[supabase] watchlist existing row select response", existing);
+
+                if (existing.error) {
+                    logSupabaseError("watchlist duplicate check failed", existing.error);
+                    throw existing.error;
+                }
+
+                const existingRow = Array.isArray(existing.data) ? existing.data[0] : existing.data;
+                if (!existingRow) {
+                    const insertPayload = {
+                        user_id: userId,
+                        symbol: normalizedSymbol,
+                    };
+                    console.log("[supabase] watchlist insert payload", insertPayload);
+                    const insert = await client
+                        .from("watchlist")
+                        .insert([insertPayload]);
+                    console.log("[supabase] watchlist insert response", insert);
+
+                    if (insert.error) {
+                        logSupabaseError("watchlist insert failed", insert.error);
+                        throw insert.error;
+                    }
+                }
+            } catch (error) {
+                logSupabaseError("addToWatchlist failed", error);
+                setCurrentWatchlistLocal(previousWatchlist);
+                renderWatchlist();
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function removeFromWatchlist(symbol) {
+            const normalizedSymbol = normalizeSymbol(symbol);
+            if (!normalizedSymbol) {
+                return;
+            }
+
+            const previousWatchlist = getCurrentWatchlist();
+            setCurrentWatchlistLocal(previousWatchlist.filter((item) => item !== normalizedSymbol));
+            renderWatchlist();
+
+            try {
+                const client = await ensureSupabaseClient();
+                if (!client) {
+                    return;
+                }
+                const userId = await ensureCurrentUserDatabaseRecord();
+                console.log("[supabase] remove watchlist resolved user id", userId);
+                if (!userId) {
+                    logSupabaseError("watchlist delete blocked", new Error("Missing database user id before delete."));
+                    return;
+                }
+                const deletion = await client
+                    .from("watchlist")
+                    .delete()
+                    .eq("user_id", userId)
+                    .eq("symbol", normalizedSymbol);
+                console.log("[supabase] watchlist delete response", deletion);
+
+                if (deletion.error) {
+                    logSupabaseError("watchlist delete failed", deletion.error);
+                    throw deletion.error;
+                }
+            } catch (error) {
+                logSupabaseError("removeFromWatchlist failed", error);
+                setCurrentWatchlistLocal(previousWatchlist);
+                renderWatchlist();
+                notifySupabaseUnavailable(error);
+            }
+        }
+
+        async function toggleWatchlistSymbol(symbol) {
+            const normalizedSymbol = normalizeSymbol(symbol);
+            if (!normalizedSymbol) {
+                return;
+            }
+
+            if (getCurrentWatchlist().includes(normalizedSymbol)) {
+                await removeFromWatchlist(normalizedSymbol);
+                return;
+            }
+
+            await addToWatchlist(normalizedSymbol);
+        }
+
+        function showAuthenticatedApp() {
+            authShell.classList.add("hidden");
+            appRoot.classList.remove("hidden-app");
+            renderCurrentUser();
+            renderWatchlist();
+        }
+
+        function showAuthShell() {
+            authShell.classList.remove("hidden");
+            appRoot.classList.add("hidden-app");
+            drawerBackdrop.classList.add("hidden");
+            historyDrawer.classList.add("hidden");
+            setOverlay("", false);
+            setStatus("", false);
+            closeTradeModal();
+        }
+
+        function createSignal() {
+            const listeners = [];
+            return {
+                connect(listener) {
+                    if (typeof listener === "function") {
+                        listeners.push(listener);
+                    }
+                },
+                emit(...args) {
+                    listeners.slice().forEach((listener) => listener(...args));
+                },
+            };
+        }
+
+        function normalizeSymbol(symbol) {
+            return String(symbol || "")
+                .trim()
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, "");
+        }
+
+        function normalizeInterval(interval) {
+            return String(interval || "").trim().toLowerCase();
+        }
+
+        function stopBrowserSocket() {
+            if (!browserSocket) {
+                return;
+            }
+
+            try {
+                browserSocket.onopen = null;
+                browserSocket.onmessage = null;
+                browserSocket.onerror = null;
+                browserSocket.onclose = null;
+                browserSocket.close();
+            } catch (_error) {
+                // Ignore socket shutdown issues while swapping markets.
+            }
+
+            browserSocket = null;
+        }
+
+        function emitBrowserPriceUpdate(runtimeBridge, symbol, candle) {
+            const change = candle.close - candle.open;
+            const percent = candle.open ? (change / candle.open) * 100 : 0;
+            runtimeBridge.livePriceChanged.emit(symbol, candle.close, change, percent);
+        }
+
+        function createBrowserBridge() {
+            const runtimeBridge = {
+                historicalDataReady: createSignal(),
+                candleUpdated: createSignal(),
+                livePriceChanged: createSignal(),
+                marketChanged: createSignal(),
+                loadingStateChanged: createSignal(),
+                statusMessage: createSignal(),
+            };
+
+            let currentSymbol = activeSymbol;
+            let currentInterval = activeTimeframe;
+
+            async function fetchHistorical(symbol, interval) {
+                runtimeBridge.loadingStateChanged.emit(true, `Loading ${symbol} ${interval} candles...`);
+                runtimeBridge.statusMessage.emit("", false);
+
+                try {
+                    const params = new URLSearchParams({
+                        symbol,
+                        interval,
+                        limit: "500",
+                    });
+                    const response = await fetch(`${BINANCE_REST_URL}?${params.toString()}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const payload = await response.json();
+                    const candles = Array.isArray(payload)
+                        ? payload.map((item) => ({
+                            time: Math.floor(item[0] / 1000),
+                            open: Number(item[1]),
+                            high: Number(item[2]),
+                            low: Number(item[3]),
+                            close: Number(item[4]),
+                            volume: Number(item[5]),
+                        }))
+                        : [];
+
+                    if (!candles.length) {
+                        throw new Error("Binance returned no candles.");
+                    }
+
+                    runtimeBridge.historicalDataReady.emit(JSON.stringify(candles));
+                    emitBrowserPriceUpdate(runtimeBridge, symbol, candles[candles.length - 1]);
+                    runtimeBridge.loadingStateChanged.emit(false, "");
+                    openBrowserSocket(symbol, interval);
+                } catch (error) {
+                    runtimeBridge.loadingStateChanged.emit(false, "");
+                    runtimeBridge.statusMessage.emit(`Failed to load Binance candles: ${error.message}`, true);
+                }
+            }
+
+            function openBrowserSocket(symbol, interval) {
+                stopBrowserSocket();
+
+                try {
+                    browserSocket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@kline_${interval}`);
+                } catch (error) {
+                    runtimeBridge.statusMessage.emit(`WebSocket error: ${error.message}`, true);
+                    return;
+                }
+
+                const activeSocket = browserSocket;
+                activeSocket.onopen = () => {
+                    runtimeBridge.statusMessage.emit(`Live stream connected: ${symbol} ${interval}`, false);
+                };
+                activeSocket.onmessage = (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        const candleData = payload.k;
+                        const candle = {
+                            time: Math.floor(candleData.t / 1000),
+                            open: Number(candleData.o),
+                            high: Number(candleData.h),
+                            low: Number(candleData.l),
+                            close: Number(candleData.c),
+                            volume: Number(candleData.v),
+                        };
+                        runtimeBridge.candleUpdated.emit(JSON.stringify(candle));
+                        emitBrowserPriceUpdate(runtimeBridge, symbol, candle);
+                    } catch (error) {
+                        runtimeBridge.statusMessage.emit(`Bad live update: ${error.message}`, true);
+                    }
+                };
+                activeSocket.onerror = () => {
+                    runtimeBridge.statusMessage.emit("WebSocket error: live stream unavailable.", true);
+                };
+                activeSocket.onclose = () => {
+                    if (browserSocket === activeSocket) {
+                        runtimeBridge.statusMessage.emit("Live stream disconnected. Reloading market data reconnects it.", false);
+                    }
+                };
+            }
+
+            runtimeBridge.pageReady = () => {
+                runtimeBridge.marketChanged.emit(currentSymbol, currentInterval);
+                runtimeBridge.reloadMarket(currentSymbol, currentInterval);
+            };
+
+            runtimeBridge.reloadMarket = (symbol, interval) => {
+                const cleanSymbol = normalizeSymbol(symbol);
+                const cleanInterval = normalizeInterval(interval);
+
+                if (!cleanSymbol) {
+                    runtimeBridge.statusMessage.emit("Enter a valid Binance symbol like BTCUSDT.", true);
+                    return;
+                }
+
+                if (!VALID_INTERVALS.has(cleanInterval)) {
+                    runtimeBridge.statusMessage.emit("Only 1m, 5m, 15m, and 1h intervals are supported.", true);
+                    return;
+                }
+
+                currentSymbol = cleanSymbol;
+                currentInterval = cleanInterval;
+                runtimeBridge.marketChanged.emit(currentSymbol, currentInterval);
+                fetchHistorical(currentSymbol, currentInterval);
+            };
+
+            return runtimeBridge;
+        }
+
+        function setOverlay(message, visible = true) {
+            overlay.textContent = message;
+            overlay.classList.toggle("hidden", !visible);
+        }
+
+        function setStatus(message, isError = false) {
+            statusRow.textContent = message || "";
+            statusRow.classList.toggle("error", Boolean(isError));
+        }
+
+        function showToast(message, type = "info") {
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastStack.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3200);
+        }
+
+        function formatPrice(value) {
+            if (!Number.isFinite(value)) {
+                return "--";
+            }
+
+            return value.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+        }
+
+        function toINR(usdt) {
+            if (!Number.isFinite(usdt)) {
+                return "--";
+            }
+
+            return (usdt * USDT_TO_INR).toFixed(2);
+        }
+
+        function formatInr(value, signed = false) {
+            if (!Number.isFinite(value)) {
+                return "--";
+            }
+
+            const prefix = signed ? (value > 0 ? "+" : value < 0 ? "-" : "") : "";
+            const formatted = Number(toINR(Math.abs(value))).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+            return `${prefix}₹${formatted} INR`;
+        }
+
+        function formatQuantity(value) {
+            if (!Number.isFinite(value)) {
+                return "--";
+            }
+
+            return value.toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6,
+            });
+        }
+
+        function formatPercent(value) {
+            if (!Number.isFinite(value)) {
+                return "--";
+            }
+
+            const prefix = value > 0 ? "+" : "";
+            return `${prefix}${value.toFixed(2)}%`;
+        }
+
+        function formatSignedPrice(value) {
+            if (!Number.isFinite(value)) {
+                return "--";
+            }
+
+            const prefix = value > 0 ? "+" : "";
+            return `${prefix}${formatPrice(value)}`;
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) {
+                return "--";
+            }
+
+            return new Date(timestamp).toLocaleString();
+        }
+
+        function resizeCanvas() {
+            const rect = chartContainer.getBoundingClientRect();
+            drawCanvas.width = rect.width;
+            drawCanvas.height = rect.height;
+        }
+
+        function scheduleDrawingRedraw() {
+            if (redrawFrame !== null) {
+                return;
+            }
+
+            redrawFrame = window.requestAnimationFrame(() => {
+                redrawFrame = null;
+                redrawDrawings();
+            });
+        }
+
+        function scheduleChartResize() {
+            if (resizeFrame !== null) {
+                return;
+            }
+
+            resizeFrame = window.requestAnimationFrame(() => {
+                resizeFrame = null;
+                resizeChart();
+                resizeCanvas();
+                scheduleDrawingRedraw();
+            });
+        }
+
+        function enableDrawingMode() {
+            drawCanvas.style.pointerEvents = "auto";
+        }
+
+        function disableDrawingMode() {
+            drawCanvas.style.pointerEvents = "none";
+        }
+
+        function setDrawingMode(tool = null) {
+            currentTool = tool;
+            tempPoints = [];
+            if (tool) {
+                enableDrawingMode();
+            } else if (!isDragging) {
+                disableDrawingMode();
+            }
+        }
+
+        function isNearLine(x, y, line) {
+            if (!chart || !series) {
+                return false;
+            }
+
+            if (line.type === "horizontal") {
+                const yLine = series.priceToCoordinate(line.price);
+                return yLine !== null && Math.abs(y - yLine) < 12;
+            }
+
+            const x1 = chart.timeScale().timeToCoordinate(line.p1.time);
+            const y1 = series.priceToCoordinate(line.p1.price);
+            const x2 = chart.timeScale().timeToCoordinate(line.p2.time);
+            const y2 = series.priceToCoordinate(line.p2.price);
+
+            if (x1 === null || x2 === null || y1 === null || y2 === null) {
+                return false;
+            }
+
+            const A = y - y1;
+            const B = x2 - x1;
+            const C = y2 - y1;
+            const D = x - x1;
+            const dot = A * C + D * B;
+            const lenSq = C * C + B * B;
+            const param = lenSq !== 0 ? dot / lenSq : -1;
+
+            let xx;
+            let yy;
+
+            if (param < 0) {
+                xx = x1;
+                yy = y1;
+            } else if (param > 1) {
+                xx = x2;
+                yy = y2;
+            } else {
+                xx = x1 + param * (x2 - x1);
+                yy = y1 + param * (y2 - y1);
+            }
+
+            const dx = x - xx;
+            const dy = y - yy;
+
+            return Math.sqrt(dx * dx + dy * dy) < 12;
+        }
+
+        function redrawDrawings() {
+            drawContext.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+
+            if (!chart || !series) {
+                return;
+            }
+
+            drawings.forEach((drawing) => {
+                drawContext.strokeStyle = drawing === selectedLine ? "#ffffff" : (drawing.color || "#facc15");
+                drawContext.lineWidth = drawing === selectedLine ? 3 : 2;
+                const rightEdge = chart.timeScale().width();
+
+                if (drawing.type === "horizontal") {
+                    const y = series.priceToCoordinate(drawing.price);
+                    if (y === null) {
+                        return;
+                    }
+
+                    drawContext.beginPath();
+                    drawContext.moveTo(0, y);
+                    drawContext.lineTo(rightEdge, y);
+                    drawContext.stroke();
+                    return;
+                }
+
+                if (drawing.type === "trend") {
+                    const x1 = chart.timeScale().timeToCoordinate(drawing.p1.time);
+                    const y1 = series.priceToCoordinate(drawing.p1.price);
+                    const x2 = chart.timeScale().timeToCoordinate(drawing.p2.time);
+                    const y2 = series.priceToCoordinate(drawing.p2.price);
+
+                    if (x1 === null || x2 === null || y1 === null || y2 === null) {
+                        return;
+                    }
+
+                    drawContext.beginPath();
+                    drawContext.moveTo(x1, y1);
+                    drawContext.lineTo(x2, y2);
+                    drawContext.stroke();
+                    const chartWidth = chartContainer.clientWidth;
+                    const price = drawing.p2.price;
+                    const labelY = series.priceToCoordinate(price);
+                    if (labelY !== null) {
+                        if (labelY < 0 || labelY > drawCanvas.height) {
+                            return;
+                        }
+
+                        drawContext.fillStyle = "#ffffff";
+                        drawContext.font = "12px Segoe UI";
+                        drawContext.fillText(price.toFixed(2), Math.max(chart.timeScale().width() - 70, 8), labelY - 4);
+                    }
+                    return;
+                }
+
+                if (drawing.type === "ray") {
+                    const x1 = chart.timeScale().timeToCoordinate(drawing.p1.time);
+                    const y1 = series.priceToCoordinate(drawing.p1.price);
+                    const x2 = chart.timeScale().timeToCoordinate(drawing.p2.time);
+                    const y2 = series.priceToCoordinate(drawing.p2.price);
+
+                    if (x1 === null || x2 === null || y1 === null || y2 === null) {
+                        return;
+                    }
+
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const extendX = x2 + dx * 1000;
+                    const extendY = y2 + dy * 1000;
+
+                    drawContext.beginPath();
+                    drawContext.moveTo(x1, y1);
+                    drawContext.lineTo(extendX, extendY);
+                    drawContext.stroke();
+                }
+            });
+        }
+
+        function saveAppState() {
+            localStorage.setItem("app", JSON.stringify({
+                position: tradingState.position,
+                drawings,
+            }));
+        }
+
+        function loadAppState() {
+            let data = null;
+
+            try {
+                data = JSON.parse(localStorage.getItem("app"));
+            } catch (_error) {
+                data = null;
+            }
+
+            if (!data) {
+                return;
+            }
+
+            tradingState.position = data.position || null;
+            drawings = Array.isArray(data.drawings) ? data.drawings : [];
+
+            refreshTradingUi();
+            redrawDrawings();
+        }
+
+        function clearAllDrawings() {
+            drawings = [];
+            selectedLine = null;
+            isDragging = false;
+            dragStart = null;
+            tempPoints = [];
+            saveAppState();
+            redrawDrawings();
+        }
+
+        function hideRSIIndicator() {
+            rsiPanel.classList.add("hidden");
+            rsiSettings.classList.add("hidden");
+            indicators.rsi = null;
+        }
+
+        function hideVolumeIndicator() {
+            volumePanel.classList.add("hidden");
+            indicators.volume = null;
+        }
+
+        function closeSymbolSuggestions() {
+            symbolSuggestions.classList.remove("open");
+            symbolSuggestions.innerHTML = "";
+        }
+
+        async function loadSymbolUniverse() {
+            try {
+                const response = await fetch(BINANCE_EXCHANGE_INFO_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const usdtSymbols = Array.isArray(payload.symbols)
+                    ? payload.symbols
+                        .map((item) => item.symbol)
+                        .filter((symbol) => typeof symbol === "string" && symbol.endsWith("USDT"))
+                        .sort()
+                    : [];
+
+                if (usdtSymbols.length) {
+                    availableSymbols = usdtSymbols;
+                }
+            } catch (_error) {
+                availableSymbols = [...DEFAULT_SYMBOLS];
+            }
+        }
+
+        function resolveSymbolSelection(query = "") {
+            const cleanQuery = String(query || "").trim().toUpperCase();
+            if (!cleanQuery) {
+                return "";
+            }
+
+            const exactMatch = availableSymbols.find((symbol) => symbol === cleanQuery);
+            if (exactMatch) {
+                return exactMatch;
+            }
+
+            const partialMatch = availableSymbols.find((symbol) => symbol.includes(cleanQuery));
+            return partialMatch || cleanQuery;
+        }
+
+        function selectSymbolOption(symbol) {
+            symbolInput.value = symbol;
+            closeSymbolSuggestions();
+            requestMarket(symbol, activeTimeframe);
+        }
+
+        function renderSymbolSuggestions(query = "") {
+            const cleanQuery = String(query || "").trim().toUpperCase();
+            const filtered = availableSymbols.filter((symbol) => symbol.includes(cleanQuery)).slice(0, 12);
+
+            if (!filtered.length || (filtered.length === 1 && filtered[0] === cleanQuery)) {
+                closeSymbolSuggestions();
+                return;
+            }
+
+            symbolSuggestions.innerHTML = "";
+            filtered.forEach((symbol) => {
+                const option = document.createElement("button");
+                option.type = "button";
+                option.className = "symbol-option";
+                option.textContent = symbol;
+                option.addEventListener("mousedown", (e) => {
+                    e.preventDefault();
+                    selectSymbolOption(symbol);
+                });
+                symbolSuggestions.appendChild(option);
+            });
+            symbolSuggestions.classList.add("open");
+        }
+
+        function clearTradeModalInputs() {
+            modalAmountInput.value = "";
+            modalLimitPriceInput.value = "";
+            modalStopLossInput.value = "";
+            modalTakeProfitInput.value = "";
+            orderTypeSelect.value = "market";
+        }
+
+        function parseOptionalNumber(value) {
+            const cleanValue = String(value ?? "").trim();
+            if (cleanValue === "") {
+                return null;
+            }
+
+            const parsedValue = Number(cleanValue);
+            return Number.isFinite(parsedValue) ? parsedValue : Number.NaN;
+        }
+
+        function updateTradeModalFields() {
+            const isBuy = tradingState.modalSide === "buy";
+            const isLimit = orderTypeSelect.value === "limit";
+            amountGroup.classList.toggle("hidden-field", !isBuy);
+            stopLossGroup.classList.toggle("hidden-field", !isBuy);
+            takeProfitGroup.classList.toggle("hidden-field", !isBuy);
+            limitPriceGroup.classList.toggle("hidden-field", !isLimit);
+            modalLimitPriceInput.disabled = !isLimit;
+            modalAmountInput.disabled = !isBuy;
+            modalStopLossInput.disabled = !isBuy;
+            modalTakeProfitInput.disabled = !isBuy;
+            updateTradeTicketSummary();
+        }
+
+        function getTradeValidationMessage() {
+            const currentPrice = getCurrentPrice();
+            const amount = parseOptionalNumber(modalAmountInput.value);
+            const limitPrice = parseOptionalNumber(modalLimitPriceInput.value);
+            const stopLoss = parseOptionalNumber(modalStopLossInput.value);
+            const takeProfit = parseOptionalNumber(modalTakeProfitInput.value);
+            const isBuy = tradingState.modalSide === "buy";
+
+            if (!Number.isFinite(currentPrice)) {
+                return "Waiting for a live price.";
+            }
+
+            if (orderTypeSelect.value === "limit" && (!Number.isFinite(limitPrice) || limitPrice <= 0)) {
+                return "Enter a valid limit price.";
+            }
+
+            if (isBuy) {
+                if (!Number.isFinite(amount) || amount <= 0 || amount > tradingState.cashBalance) {
+                    return amount > tradingState.cashBalance
+                        ? "Not enough balance for that order."
+                        : "Enter a valid USDT amount.";
+                }
+
+                if (stopLoss !== null && (!Number.isFinite(stopLoss) || stopLoss <= 0)) {
+                    return "Enter a valid Stop Loss price.";
+                }
+
+                if (stopLoss !== null && stopLoss >= currentPrice) {
+                    return `Stop Loss must be lower than current price (${formatPrice(currentPrice)})`;
+                }
+
+                if (takeProfit !== null && (!Number.isFinite(takeProfit) || takeProfit <= 0)) {
+                    return "Enter a valid Take Profit price.";
+                }
+
+                if (takeProfit !== null && takeProfit <= currentPrice) {
+                    return `Take Profit must be greater than current price (${formatPrice(currentPrice)})`;
+                }
+
+                return tradingState.position ? "Close the current position before buying again." : "";
+            }
+
+            return tradingState.position ? "" : "No position available to sell.";
+        }
+
+        function canSubmitTradeTicket() {
+            return !getTradeValidationMessage();
+        }
+
+        function updateTradeTicketSummary() {
+            const side = tradingState.modalSide.toUpperCase();
+            const orderType = orderTypeSelect.value.toUpperCase();
+            const currentPrice = getCurrentPrice();
+            const amount = parseOptionalNumber(modalAmountInput.value);
+            const limitPrice = Number(modalLimitPriceInput.value);
+            const stopLoss = parseOptionalNumber(modalStopLossInput.value);
+            const takeProfit = parseOptionalNumber(modalTakeProfitInput.value);
+
+            const lines = [
+                `${side} ${activeSymbol} via ${orderType} order`,
+                `Entry Price: ${Number.isFinite(currentPrice) ? formatPrice(currentPrice) : "--"}`,
+                `Live price: ${Number.isFinite(currentPrice) ? `${formatPrice(currentPrice)} USDT (${formatInr(currentPrice)})` : "--"}`
+            ];
+
+            if (tradingState.modalSide === "buy") {
+                lines.push(`Amount: ${Number.isFinite(amount) && amount > 0 ? `${formatPrice(amount)} USDT (${formatInr(amount)})` : "--"}`);
+                lines.push(`Stop loss: ${Number.isFinite(stopLoss) && stopLoss > 0 ? `${formatPrice(stopLoss)} USDT (${formatInr(stopLoss)})` : "None"}`);
+                lines.push(`Take profit: ${Number.isFinite(takeProfit) && takeProfit > 0 ? `${formatPrice(takeProfit)} USDT (${formatInr(takeProfit)})` : "None"}`);
+            } else if (tradingState.position) {
+                lines.push(`Position size: ${formatQuantity(tradingState.position.quantity)} ${tradingState.position.symbol.replace("USDT", "")}`);
+            }
+
+            if (orderTypeSelect.value === "limit") {
+                lines.push(`Limit price: ${Number.isFinite(limitPrice) && limitPrice > 0 ? `${formatPrice(limitPrice)} USDT (${formatInr(limitPrice)})` : "--"}`);
+            }
+
+            tradeTicketSummary.innerHTML = lines.join("<br>");
+            const validationMessage = getTradeValidationMessage();
+            tradeValidationMessage.textContent = validationMessage;
+            confirmTradeButton.disabled = Boolean(validationMessage);
+        }
+
+        function updateTradeSummary() {
+            updateTradeTicketSummary();
+        }
+
+        function setTradeModalVisibility(isOpen) {
+            if (!tradeModal) {
+                return false;
+            }
+
+            if (tradeModal.parentElement !== document.body) {
+                document.body.appendChild(tradeModal);
+            }
+
+            const modalCard = tradeModal.querySelector(".trade-modal-card");
+            tradeModal.classList.toggle("hidden", !isOpen);
+            tradeModal.classList.toggle("is-open", isOpen);
+            tradeModal.style.display = isOpen ? "flex" : "none";
+            tradeModal.style.opacity = isOpen ? "1" : "0";
+            tradeModal.style.visibility = isOpen ? "visible" : "hidden";
+            tradeModal.style.pointerEvents = isOpen ? "auto" : "none";
+            tradeModal.style.zIndex = isOpen ? "9999" : "9999";
+
+            if (modalCard) {
+                modalCard.style.display = "block";
+                modalCard.style.opacity = "1";
+                modalCard.style.visibility = "visible";
+            }
+
+            return true;
+        }
+
+        function openTradeModal(side) {
+            if (!tradeModal) {
+                return;
+            }
+
+            tradingState.modalSide = side;
+            const isBuy = side === "buy";
+            tradeModalTitle.textContent = isBuy ? "Buy Order" : "Sell Order";
+            tradeModalSubtitle.textContent = isBuy
+                ? `Create a paper long ticket for ${activeSymbol}`
+                : `Close the current ${activeSymbol} position`;
+            confirmTradeButton.textContent = isBuy ? "Confirm BUY" : "Confirm SELL";
+            confirmTradeButton.className = `trade-button ${isBuy ? "buy" : "sell"}`;
+            clearTradeModalInputs();
+            const currentPrice = getCurrentPrice();
+            if (isBuy && Number.isFinite(currentPrice)) {
+                modalStopLossInput.value = (currentPrice * 0.98).toFixed(2);
+                modalTakeProfitInput.value = (currentPrice * 1.02).toFixed(2);
+            }
+            updateTradeModalFields();
+            setOverlay("", false);
+            setTradeModalVisibility(true);
+        }
+
+        function closeTradeModal() {
+            if (!tradeModal) {
+                return;
+            }
+
+            setTradeModalVisibility(false);
+            clearTradeModalInputs();
+        }
+
+        function updatePrice(symbol, price, change, percent) {
+            const previousPrice = tradingState.lastVisiblePrice ?? price;
+
+            priceSymbol.textContent = symbol;
+            priceValue.textContent = formatPrice(price);
+            priceInr.textContent = formatInr(price);
+            priceChange.textContent = `${formatSignedPrice(change)} (${change > 0 ? "+" : ""}${percent.toFixed(2)}%)`;
+            priceChange.className = `price-change ${change > 0 ? "positive" : change < 0 ? "negative" : "flat"}`;
+
+            if (price > previousPrice) {
+                priceValue.style.color = "var(--green)";
+            } else if (price < previousPrice) {
+                priceValue.style.color = "var(--red)";
+            } else {
+                priceValue.style.color = "var(--text)";
+            }
+
+            tradingState.lastVisiblePrice = price;
+            updatePnlBox(price);
+        }
+
+        function setActiveTimeframe(timeframe) {
+            activeTimeframe = timeframe;
+            timeframeButtons.forEach((button) => {
+                button.classList.toggle("active", button.dataset.timeframe === timeframe);
+            });
+        }
+
+        function getCurrentPrice(symbol = activeSymbol) {
+            return tradingState.lastPrices[symbol] ?? null;
+        }
+
+        function getLivePnl() {
+            if (!tradingState.position) {
+                return 0;
+            }
+
+            const price = getCurrentPrice(tradingState.position.symbol);
+            if (!Number.isFinite(price)) {
+                return 0;
+            }
+
+            return (price - tradingState.position.entryPrice) * tradingState.position.quantity;
+        }
+
+        function getAccountEquity() {
+            if (!tradingState.position) {
+                return tradingState.cashBalance;
+            }
+
+            return tradingState.cashBalance + tradingState.position.quantity * (getCurrentPrice(tradingState.position.symbol) ?? tradingState.position.entryPrice);
+        }
+
+        function getTotalProfitPercent() {
+            return ((getAccountEquity() - tradingState.initialBalance) / tradingState.initialBalance) * 100;
+        }
+
+        function calculateMA(data, period) {
+            const result = [];
+
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    result.push({ time: data[i].time });
+                    continue;
+                }
+
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].close;
+                }
+
+                result.push({
+                    time: data[i].time,
+                    value: sum / period,
+                });
+            }
+
+            return result;
+        }
+
+        function createMovingAverageSeries(color) {
+            if (!chart) {
+                return null;
+            }
+
+            if (typeof chart.addLineSeries === "function") {
+                return chart.addLineSeries({
+                    color,
+                    lineWidth: 2,
+                });
+            }
+
+            if (window.LightweightCharts && window.LightweightCharts.LineSeries) {
+                return chart.addSeries(window.LightweightCharts.LineSeries, {
+                    color,
+                    lineWidth: 2,
+                });
+            }
+
+            throw new Error("Line series API is unavailable.");
+        }
+
+        function updateAllMA() {
+            maList.forEach((ma) => {
+                const maData = currentData.length ? calculateMA(currentData, ma.period) : [];
+                ma.series.setData(maData);
+            });
+        }
+
+        function renderMAList() {
+            maListContainer.innerHTML = "";
+            indicators.ma = maList;
+
+            maList.forEach((ma, index) => {
+                const item = document.createElement("div");
+                item.className = "ma-item";
+
+                item.innerHTML = `
+                    <div class="ma-color" style="background:${ma.color}"></div>
+                    MA ${ma.period}
+                    <span class="ma-remove">✖</span>
+                `;
+
+                item.querySelector(".ma-remove").onclick = () => {
+                    chart.removeSeries(ma.series);
+                    maList.splice(index, 1);
+                    indicators.ma = maList;
+                    renderMAList();
+                };
+
+                maListContainer.appendChild(item);
+            });
+        }
+
+        function openMAPanel() {
+            maPanel.classList.remove("hidden");
+            maListContainer.classList.remove("hidden");
+            rsiSettings.classList.add("hidden");
+        }
+
+        function ensureIndicatorCharts() {
+            if (!window.LightweightCharts) {
+                return;
+            }
+
+            if (!rsiChart) {
+                rsiChart = window.LightweightCharts.createChart(rsiChartHost, {
+                    height: 120,
+                    layout: {
+                        background: { color: "#0b1220" },
+                        textColor: "#cbd5e1",
+                    },
+                    grid: {
+                        vertLines: { color: "rgba(148, 163, 184, 0.08)" },
+                        horzLines: { color: "rgba(148, 163, 184, 0.08)" },
+                    },
+                    timeScale: {
+                        visible: false,
+                    },
+                    rightPriceScale: {
+                        visible: true,
+                        borderColor: "rgba(148, 163, 184, 0.2)",
+                    },
+                });
+
+                if (typeof rsiChart.addLineSeries === "function") {
+                    rsiSeries = rsiChart.addLineSeries({
+                        color: "#a855f7",
+                    });
+                } else if (window.LightweightCharts.LineSeries) {
+                    rsiSeries = rsiChart.addSeries(window.LightweightCharts.LineSeries, {
+                        color: "#a855f7",
+                    });
+                }
+            }
+
+            if (!volumeChart) {
+                volumeChart = window.LightweightCharts.createChart(volumeChartHost, {
+                    height: 100,
+                    layout: {
+                        background: { color: "#0b1220" },
+                        textColor: "#cbd5e1",
+                    },
+                    grid: {
+                        vertLines: { color: "rgba(148, 163, 184, 0.08)" },
+                        horzLines: { color: "rgba(148, 163, 184, 0.08)" },
+                    },
+                    timeScale: {
+                        visible: true,
+                        timeVisible: true,
+                    },
+                    rightPriceScale: {
+                        visible: true,
+                        borderColor: "rgba(148, 163, 184, 0.2)",
+                    },
+                });
+
+                if (typeof volumeChart.addHistogramSeries === "function") {
+                    volumeSeries = volumeChart.addHistogramSeries({
+                        color: "#26a69a",
+                    });
+                } else if (window.LightweightCharts.HistogramSeries) {
+                    volumeSeries = volumeChart.addSeries(window.LightweightCharts.HistogramSeries, {
+                        color: "#26a69a",
+                    });
+                }
+            }
+
+            if (chart && !indicatorSyncBound) {
+                chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+                    if (!range) return;
+
+                    if (rsiChart) {
+                        rsiChart.timeScale().setVisibleLogicalRange(range);
+                    }
+
+                    if (volumeChart) {
+                        volumeChart.timeScale().setVisibleLogicalRange(range);
+                    }
+                });
+                indicatorSyncBound = true;
+            }
+        }
+
+        function calculateRSI(data, period = 14) {
+            const result = [];
+
+            for (let i = period; i < data.length; i++) {
+                let gain = 0;
+                let loss = 0;
+
+                for (let j = i - period; j < i; j++) {
+                    const diff = data[j + 1].close - data[j].close;
+                    if (diff > 0) gain += diff;
+                    else loss -= diff;
+                }
+
+                const rs = gain / (loss || 1);
+                const rsi = 100 - (100 / (1 + rs));
+
+                result.push({
+                    time: data[i].time,
+                    value: rsi,
+                });
+            }
+
+            return result;
+        }
+
+        function showRSI() {
+            ensureIndicatorCharts();
+            rsiPanel.classList.remove("hidden");
+            rsiSettings.classList.remove("hidden");
+            maPanel.classList.add("hidden");
+            maListContainer.classList.add("hidden");
+            indicators.rsi = rsiSeries;
+
+            if (rsiChart) {
+                rsiChart.resize(rsiPanel.clientWidth, 120);
+                const range = chart?.timeScale().getVisibleLogicalRange?.();
+                if (range) {
+                    rsiChart.timeScale().setVisibleLogicalRange(range);
+                }
+            }
+
+            if (rsiSeries) {
+                const rsiData = calculateRSI(currentData, rsiPeriod);
+                rsiSeries.setData(rsiData);
+            }
+        }
+
+        function showVolume() {
+            ensureIndicatorCharts();
+            volumePanel.classList.remove("hidden");
+            rsiSettings.classList.add("hidden");
+            maPanel.classList.add("hidden");
+            maListContainer.classList.add("hidden");
+            indicators.volume = volumeSeries;
+
+            if (volumeChart) {
+                volumeChart.resize(volumePanel.clientWidth, 100);
+                const range = chart?.timeScale().getVisibleLogicalRange?.();
+                if (range) {
+                    volumeChart.timeScale().setVisibleLogicalRange(range);
+                }
+            }
+
+            if (volumeSeries) {
+                const volumeData = currentData.map((candle) => ({
+                    time: candle.time,
+                    value: candle.volume,
+                    color: candle.close > candle.open ? "#00ff88" : "#ff3b3b",
+                }));
+
+                volumeSeries.setData(volumeData);
+            }
+        }
+
+        function updateIndicators() {
+            if (!rsiPanel.classList.contains("hidden") && rsiSeries) {
+                rsiSeries.setData(calculateRSI(currentData, rsiPeriod));
+            }
+
+            if (!volumePanel.classList.contains("hidden") && volumeSeries) {
+                volumeSeries.setData(
+                    currentData.map((c) => ({
+                        time: c.time,
+                        value: c.volume,
+                        color: c.close > c.open ? "#00ff88" : "#ff3b3b",
+                    }))
+                );
+            }
+        }
+
+        function clearPositionLines() {
+            if (!series) {
+                entryLine = null;
+                stopLossLine = null;
+                takeProfitLine = null;
+                return;
+            }
+
+            if (entryLine) {
+                series.removePriceLine(entryLine);
+                entryLine = null;
+            }
+
+            if (stopLossLine) {
+                series.removePriceLine(stopLossLine);
+                stopLossLine = null;
+            }
+
+            if (takeProfitLine) {
+                series.removePriceLine(takeProfitLine);
+                takeProfitLine = null;
+            }
+        }
+
+        function renderPositionLines() {
+            clearPositionLines();
+
+            if (!series || !tradingState.position) {
+                return;
+            }
+
+            entryLine = series.createPriceLine({
+                price: tradingState.position.entryPrice,
+                color: "#2962FF",
+                lineWidth: 2,
+                lineStyle: 0,
+                axisLabelVisible: true,
+                title: "ENTRY",
+            });
+
+            if (Number.isFinite(tradingState.position.stopLoss)) {
+                stopLossLine = series.createPriceLine({
+                    price: tradingState.position.stopLoss,
+                    color: "#ff3b3b",
+                    lineWidth: 2,
+                    lineStyle: 0,
+                    axisLabelVisible: true,
+                    title: "SL",
+                });
+            }
+
+            if (Number.isFinite(tradingState.position.takeProfit)) {
+                takeProfitLine = series.createPriceLine({
+                    price: tradingState.position.takeProfit,
+                    color: "#00ff88",
+                    lineWidth: 2,
+                    lineStyle: 0,
+                    axisLabelVisible: true,
+                    title: "TP",
+                });
+            }
+        }
+
+        function updatePnlBox(currentPrice = getCurrentPrice(tradingState.position?.symbol)) {
+            if (!tradingState.position || !Number.isFinite(currentPrice)) {
+                pnlBox.style.display = "none";
+                pnlBox.textContent = "";
+                return;
+            }
+
+            const pnl = (currentPrice - tradingState.position.entryPrice) * tradingState.position.quantity;
+            const percent = tradingState.position.investedAmount
+                ? (pnl / tradingState.position.investedAmount) * 100
+                : 0;
+
+            pnlBox.innerHTML = `PnL: ${pnl.toFixed(2)} USDT (${percent.toFixed(2)}%)`;
+            pnlBox.style.color = pnl > 0 ? "#00ff88" : pnl < 0 ? "#ff3b3b" : "#e5edf5";
+            pnlBox.style.display = "block";
+        }
+
+        function updateValueClass(element, value) {
+            element.classList.remove("positive", "negative", "flat");
+            element.classList.add(value > 0 ? "positive" : value < 0 ? "negative" : "flat");
+        }
+
+        function renderPendingOrders() {
+            if (!tradingState.pendingOrders.length) {
+                pendingOrdersList.innerHTML = `
+                    <div class="pending-order">
+                        <div class="pending-badge buy">Empty</div>
+                        <div>
+                            <div>No pending orders</div>
+                            <div class="pending-meta">Place a limit order to queue it here.</div>
+                        </div>
+                        <button class="ghost-button" type="button" disabled>Idle</button>
+                    </div>
+                `;
+                pendingCountValue.textContent = "0";
+                pendingCountNote.textContent = "No pending limit orders";
+                return;
+            }
+
+            pendingCountValue.textContent = String(tradingState.pendingOrders.length);
+            pendingCountNote.textContent = "Waiting for live price trigger";
+            pendingOrdersList.innerHTML = "";
+
+            tradingState.pendingOrders.forEach((order) => {
+                const row = document.createElement("div");
+                row.className = "pending-order";
+                row.innerHTML = `
+                    <div class="pending-badge ${order.side}">${order.side.toUpperCase()}</div>
+                    <div>
+                        <div>${order.symbol} LIMIT @ ${formatPrice(order.price)}</div>
+                        <div class="pending-meta">Queued ${formatTimestamp(order.createdAt)}${order.amount ? ` • ${formatPrice(order.amount)} USDT` : ""}${order.stopLoss ? ` • SL ${formatPrice(order.stopLoss)}` : ""}</div>
+                    </div>
+                    <button class="ghost-button" type="button" data-order-id="${order.id}">Cancel</button>
+                `;
+                pendingOrdersList.appendChild(row);
+                const details = row.querySelector("div:nth-child(2)");
+                if (details) {
+                    details.innerHTML = `
+                        <div>${order.symbol} LIMIT @ ${formatPrice(order.price)} USDT</div>
+                        <div class="pending-meta">${formatInr(order.price)} | Queued ${formatTimestamp(order.createdAt)}${order.amount ? ` | ${formatPrice(order.amount)} USDT (${formatInr(order.amount)})` : ""}${order.stopLoss ? ` | SL ${formatPrice(order.stopLoss)} USDT (${formatInr(order.stopLoss)})` : ""}${order.takeProfit ? ` | TP ${formatPrice(order.takeProfit)} USDT (${formatInr(order.takeProfit)})` : ""}</div>
+                    `;
+                }
+            });
+
+            pendingOrdersList.querySelectorAll("[data-order-id]").forEach((button) => {
+                button.addEventListener("click", () => cancelPendingOrder(Number(button.dataset.orderId)));
+            });
+        }
+
+        function renderHistory() {
+            if (!tradingState.trades.length) {
+                historyTableBody.innerHTML = `<tr><td colspan="8" class="empty-table">No completed trades yet.</td></tr>`;
+                return;
+            }
+
+            historyTableBody.innerHTML = tradingState.trades
+                .slice()
+                .reverse()
+                .map((trade) => `
+                    <tr>
+                        <td>${trade.symbol}</td>
+                        <td>${formatPrice(trade.entryPrice)}</td>
+                        <td>${formatPrice(trade.exitPrice)}</td>
+                        <td>${formatQuantity(trade.quantity)}</td>
+                        <td>${formatTimestamp(trade.entryTime)}</td>
+                        <td>${formatTimestamp(trade.exitTime)}</td>
+                        <td class="${trade.pnl > 0 ? "positive" : trade.pnl < 0 ? "negative" : "flat"}">${formatSignedPrice(trade.pnl)}</td>
+                        <td class="${trade.percentage > 0 ? "positive" : trade.percentage < 0 ? "negative" : "flat"}">${formatPercent(trade.percentage)}</td>
+                    </tr>
+                `)
+                .join("");
+        }
+
+        function refreshTradingUi() {
+            const livePnl = getLivePnl();
+            const equity = getAccountEquity();
+            const totalProfitPercent = getTotalProfitPercent();
+            const hasPosition = Boolean(tradingState.position);
+
+            balanceValue.textContent = `${formatPrice(equity)} USDT`;
+            balanceInr.textContent = formatInr(equity);
+            balanceNote.textContent = `Available cash: ${formatPrice(tradingState.cashBalance)} USDT (${formatInr(tradingState.cashBalance)})`;
+
+            openPnlValue.textContent = `${formatSignedPrice(livePnl)} USDT`;
+            openPnlInr.textContent = formatInr(livePnl, true);
+            updateValueClass(openPnlValue, livePnl);
+            openPnlNote.textContent = hasPosition
+                ? `Live mark-to-market on ${tradingState.position.symbol}`
+                : "No active position";
+
+            profitPercentValue.textContent = formatPercent(totalProfitPercent);
+            updateValueClass(profitPercentValue, totalProfitPercent);
+
+            if (hasPosition) {
+                positionSymbol.textContent = tradingState.position.symbol;
+                positionEntry.innerHTML = `${formatPrice(tradingState.position.entryPrice)}<br><span class="sub-value">${formatInr(tradingState.position.entryPrice)}</span>`;
+                positionQuantity.textContent = formatQuantity(tradingState.position.quantity);
+                positionTime.textContent = formatTimestamp(tradingState.position.entryTime);
+                positionStopLoss.innerHTML = Number.isFinite(tradingState.position.stopLoss)
+                    ? `${formatPrice(tradingState.position.stopLoss)}<br><span class="sub-value">${formatInr(tradingState.position.stopLoss)}</span>`
+                    : "--";
+                positionTakeProfit.innerHTML = Number.isFinite(tradingState.position.takeProfit)
+                    ? `${formatPrice(tradingState.position.takeProfit)}<br><span class="sub-value">${formatInr(tradingState.position.takeProfit)}</span>`
+                    : "--";
+            } else {
+                positionSymbol.textContent = "No position";
+                positionEntry.innerHTML = "--";
+                positionQuantity.textContent = "--";
+                positionTime.textContent = "--";
+                positionStopLoss.innerHTML = "--";
+                positionTakeProfit.innerHTML = "--";
+            }
+
+            openBuyModalButton.disabled = false;
+            openSellModalButton.disabled = false;
+            clearOrdersButton.disabled = !tradingState.pendingOrders.length;
+
+            renderPendingOrders();
+            renderHistory();
+            updatePnlBox();
+        }
+
+        // Order Execution Engine
+        function createLimitOrder(side, price, amount = null, stopLoss = null, takeProfit = null) {
+            if (!Number.isFinite(price) || price <= 0) {
+                setStatus("Enter a valid limit price.", true);
+                showToast("Enter a valid limit price.", "error");
+                return;
+            }
+
+            if (side === "buy" && tradingState.position) {
+                setStatus("Cannot place a buy order while already in a position.", true);
+                showToast("BUY blocked: already in position.", "error");
+                return;
+            }
+
+            if (side === "sell" && !tradingState.position) {
+                setStatus("Cannot place a sell order without an open position.", true);
+                showToast("SELL blocked: no open position.", "error");
+                return;
+            }
+
+            const duplicate = tradingState.pendingOrders.find(
+                (order) => order.side === side && order.symbol === activeSymbol
+            );
+            if (duplicate) {
+                setStatus(`A ${side.toUpperCase()} limit order is already pending for ${activeSymbol}.`, true);
+                showToast("Duplicate limit order prevented.", "error");
+                return;
+            }
+
+            const order = {
+                id: tradingState.orderSequence++,
+                type: "limit",
+                side,
+                symbol: activeSymbol,
+                price,
+                amount,
+                stopLoss,
+                takeProfit,
+                createdAt: Date.now(),
+            };
+
+            tradingState.pendingOrders.push(order);
+            setStatus(`${side.toUpperCase()} limit queued at ${formatPrice(price)} for ${activeSymbol}.`, false);
+            showToast(`${side.toUpperCase()} LIMIT queued at ${formatPrice(price)}`, "info");
+            closeTradeModal();
+            refreshTradingUi();
+        }
+
+        function cancelPendingOrder(orderId) {
+            tradingState.pendingOrders = tradingState.pendingOrders.filter((order) => order.id !== orderId);
+            setStatus("Pending order cancelled.", false);
+            showToast("Pending order cancelled.", "info");
+            refreshTradingUi();
+        }
+
+        function clearPendingOrders() {
+            if (!tradingState.pendingOrders.length) {
+                return;
+            }
+
+            tradingState.pendingOrders = [];
+            setStatus("All pending orders cleared.", false);
+            showToast("All pending orders cleared.", "info");
+            refreshTradingUi();
+        }
+
+        function executeBuy(price, amount, reasonLabel, stopLoss = null, takeProfit = null) {
+            const normalizedStopLoss = parseOptionalNumber(stopLoss);
+            const normalizedTakeProfit = parseOptionalNumber(takeProfit);
+
+            console.log("[trade] executeBuy", {
+                currentPrice: price,
+                stopLoss: normalizedStopLoss,
+                takeProfit: normalizedTakeProfit,
+                amount,
+            });
+
+            if (tradingState.position) {
+                setStatus("Cannot buy while a position is already open.", true);
+                showToast("BUY blocked: close the current position first.", "error");
+                return false;
+            }
+
+            if (tradingState.cashBalance <= 0) {
+                setStatus("No available balance to buy.", true);
+                showToast("BUY blocked: no balance available.", "error");
+                return false;
+            }
+
+            if (!Number.isFinite(amount) || amount <= 0) {
+                setStatus("Enter amount to buy.", true);
+                showToast("Enter amount first.", "error");
+                return false;
+            }
+
+            if (amount > tradingState.cashBalance) {
+                setStatus("Not enough balance.", true);
+                showToast("Insufficient balance.", "error");
+                return false;
+            }
+
+            if (normalizedStopLoss !== null && (!Number.isFinite(normalizedStopLoss) || normalizedStopLoss <= 0)) {
+                setStatus("Enter a valid Stop Loss price.", true);
+                showToast("Invalid stop loss.", "error");
+                return false;
+            }
+
+            if (normalizedStopLoss !== null && normalizedStopLoss >= price) {
+                setStatus("Stop loss must be below the current buy price.", true);
+                showToast("Invalid stop loss.", "error");
+                return false;
+            }
+
+            if (normalizedTakeProfit !== null && (!Number.isFinite(normalizedTakeProfit) || normalizedTakeProfit <= 0)) {
+                setStatus("Enter a valid Take Profit price.", true);
+                showToast("Invalid take profit.", "error");
+                return false;
+            }
+
+            if (normalizedTakeProfit !== null && normalizedTakeProfit <= price) {
+                setStatus("Take profit must be above the current buy price.", true);
+                showToast("Invalid take profit.", "error");
+                return false;
+            }
+
+            const quantity = amount / price;
+            tradingState.position = {
+                symbol: activeSymbol,
+                entryPrice: price,
+                quantity,
+                entryTime: Date.now(),
+                investedAmount: amount,
+                stopLoss: normalizedStopLoss,
+                takeProfit: normalizedTakeProfit,
+            };
+            renderPositionLines();
+            tradingState.cashBalance -= amount;
+            tradingState.pendingOrders = tradingState.pendingOrders.filter((order) => order.side !== "buy");
+            setStatus(`${reasonLabel} at ${formatPrice(price)} for ${activeSymbol}.`, false);
+            showToast(`${reasonLabel} at ${formatPrice(price)}`, "success");
+            closeTradeModal();
+            refreshTradingUi();
+            saveAppState();
+            saveCurrentUserPaperBalanceToDatabase();
+            return true;
+        }
+
+        function executeSell(price, reasonLabel) {
+            if (!tradingState.position) {
+                setStatus("Cannot sell without an open position.", true);
+                showToast("SELL blocked: no active position.", "error");
+                return false;
+            }
+
+            const position = tradingState.position;
+            const proceeds = position.quantity * price;
+            const pnl = proceeds - position.investedAmount;
+            const percentage = (pnl / position.investedAmount) * 100;
+            tradingState.cashBalance += proceeds;
+            const completedTrade = {
+                symbol: position.symbol,
+                side: "long",
+                entryPrice: position.entryPrice,
+                exitPrice: price,
+                quantity: position.quantity,
+                entryTime: position.entryTime,
+                exitTime: Date.now(),
+                pnl,
+                percentage,
+            };
+            tradingState.trades.push(completedTrade);
+            tradingState.position = null;
+            clearPositionLines();
+            updatePnlBox(null);
+            tradingState.pendingOrders = tradingState.pendingOrders.filter((order) => order.side !== "sell");
+
+            setStatus(`${reasonLabel} at ${formatPrice(price)}. Realized PnL ${formatSignedPrice(pnl)} USDT.`, false);
+            showToast(`${reasonLabel} at ${formatPrice(price)}`, "success");
+            closeTradeModal();
+            refreshTradingUi();
+            saveAppState();
+            saveCurrentUserPaperBalanceToDatabase();
+            saveTradeToDatabase(completedTrade);
+            return true;
+        }
+
+        function submitTradeTicket() {
+            const isBuy = tradingState.modalSide === "buy";
+            const orderType = orderTypeSelect.value;
+            const livePrice = getCurrentPrice();
+            const amount = Number(modalAmountInput.value);
+            const limitPrice = Number(modalLimitPriceInput.value);
+            const stopLoss = parseOptionalNumber(modalStopLossInput.value);
+            const takeProfit = parseOptionalNumber(modalTakeProfitInput.value);
+            const validationMessage = getTradeValidationMessage();
+
+            console.log("[trade] submitTradeTicket", {
+                currentPrice: livePrice,
+                stopLoss,
+                takeProfit,
+                amount,
+                validationMessage,
+                orderType,
+                side: tradingState.modalSide,
+            });
+
+            if (!Number.isFinite(livePrice)) {
+                setStatus("Waiting for a live price before sending an order.", true);
+                return;
+            }
+
+            if (validationMessage) {
+                setStatus(validationMessage, true);
+                showToast(validationMessage, "error");
+                return;
+            }
+
+            if (isBuy) {
+                if (orderType === "market") {
+                    executeBuy(livePrice, amount, "BUY FILLED", stopLoss, takeProfit);
+                    return;
+                }
+
+                createLimitOrder("buy", limitPrice, amount, stopLoss, takeProfit);
+                return;
+            }
+
+            if (!tradingState.position) {
+                setStatus("No position available to sell.", true);
+                showToast("SELL blocked: no active position.", "error");
+                return;
+            }
+
+            if (orderType === "market") {
+                executeSell(livePrice, "SELL FILLED");
+                return;
+            }
+
+            createLimitOrder("sell", limitPrice, tradingState.position.investedAmount, null);
+        }
+
+        function handleMarketBuy() {
+            openTradeModal("buy");
+        }
+
+        function handleMarketSell() {
+            openTradeModal("sell");
+        }
+
+        function processPendingOrders(symbol, price) {
+            if (!tradingState.pendingOrders.length) {
+                return;
+            }
+
+            const executableOrders = tradingState.pendingOrders.filter((order) => {
+                if (order.symbol !== symbol) {
+                    return false;
+                }
+
+                if (order.side === "buy") {
+                    return price <= order.price;
+                }
+
+                return price >= order.price;
+            });
+
+            executableOrders.forEach((order) => {
+                const succeeded = order.side === "buy"
+                    ? executeBuy(order.price, order.amount, "LIMIT ORDER EXECUTED", order.stopLoss, order.takeProfit)
+                    : executeSell(order.price, "LIMIT ORDER EXECUTED");
+
+                if (succeeded) {
+                    tradingState.pendingOrders = tradingState.pendingOrders.filter((pending) => pending.id !== order.id);
+                }
+            });
+
+            refreshTradingUi();
+        }
+
+        function processStopLoss(symbol, price) {
+            if (!tradingState.position || tradingState.position.symbol !== symbol) {
+                return;
+            }
+
+            if (Number.isFinite(tradingState.position.stopLoss) && price <= tradingState.position.stopLoss) {
+                executeSell(tradingState.position.stopLoss, "STOP LOSS FILLED");
+                return;
+            }
+
+            if (Number.isFinite(tradingState.position.takeProfit) && price >= tradingState.position.takeProfit) {
+                executeSell(tradingState.position.takeProfit, "TAKE PROFIT FILLED");
+            }
+        }
+
+        function handleTradingTick(symbol, price) {
+            tradingState.lastPrices[symbol] = price;
+            if (tradingState.position && tradingState.position.symbol === symbol) {
+                if (Number.isFinite(tradingState.position.stopLoss) && price <= tradingState.position.stopLoss) {
+                    executeSell(tradingState.position.stopLoss, "STOP LOSS FILLED");
+                    refreshTradingUi();
+                    return;
+                }
+
+                if (Number.isFinite(tradingState.position.takeProfit) && price >= tradingState.position.takeProfit) {
+                    executeSell(tradingState.position.takeProfit, "TAKE PROFIT FILLED");
+                    refreshTradingUi();
+                    return;
+                }
+            }
+
+            processPendingOrders(symbol, price);
+            refreshTradingUi();
+        }
+
+        function canSwitchSymbol(nextSymbol) {
+            if (nextSymbol === activeSymbol) {
+                return true;
+            }
+
+            if (tradingState.position) {
+                setStatus(`Close the ${tradingState.position.symbol} position before switching symbols.`, true);
+                showToast("Symbol switch blocked: active position open.", "error");
+                return false;
+            }
+
+            if (tradingState.pendingOrders.length) {
+                setStatus("Clear pending limit orders before switching symbols.", true);
+                showToast("Symbol switch blocked: pending orders exist.", "error");
+                return false;
+            }
+
+            return true;
+        }
+
+        function syncMarket(symbol, timeframe) {
+            isLoadingData = true;
+            activeSymbol = symbol;
+            symbolInput.value = symbol;
+            closeSymbolSuggestions();
+            updateWatchlistToggleState();
+            setActiveTimeframe(timeframe);
+            tradingState.lastVisiblePrice = null;
+            currentData = [];
+            updateAllMA();
+            updateIndicators();
+
+            if (chart && series) {
+                clearPositionLines();
+                chart.removeSeries(series);
+                series = null;
+                createSeries();
+            }
+        }
+
+        function resizeChart() {
+            if (!chart) return;
+
+            const rect = chartContainer.getBoundingClientRect();
+            const isPhoneWidth = window.matchMedia("(max-width: 640px)").matches;
+
+            chart.applyOptions({
+                width: rect.width,
+                height: rect.height
+            });
+
+            chart.priceScale("right").applyOptions({
+                visible: true,
+                ticksVisible: true,
+                autoScale: true,
+                minimumWidth: isPhoneWidth ? 78 : 115
+            });
+
+            if (rsiChart && !rsiPanel.classList.contains("hidden")) {
+                rsiChart.resize(rsiPanel.clientWidth, 120);
+            }
+
+            if (volumeChart && !volumePanel.classList.contains("hidden")) {
+                volumeChart.resize(volumePanel.clientWidth, 100);
+            }
+        }
+
+        function createSeries() {
+            if (!chart) {
+                return;
+            }
+
+            if (typeof chart.addCandlestickSeries === "function") {
+                series = chart.addCandlestickSeries({
+                    upColor: "#00ff88",
+                    downColor: "#ff3b3b",
+                    borderVisible: false,
+                    wickUpColor: "#00ff88",
+                    wickDownColor: "#ff3b3b",
+                });
+                if (tradingState.position) {
+                    renderPositionLines();
+                }
+                return;
+            }
+
+            if (window.LightweightCharts && window.LightweightCharts.CandlestickSeries) {
+                series = chart.addSeries(window.LightweightCharts.CandlestickSeries, {
+                    upColor: "#00ff88",
+                    downColor: "#ff3b3b",
+                    borderVisible: false,
+                    wickUpColor: "#00ff88",
+                    wickDownColor: "#ff3b3b",
+                });
+                if (tradingState.position) {
+                    renderPositionLines();
+                }
+                return;
+            }
+
+            throw new Error("Candlestick series API is unavailable.");
+        }
+
+        function updateHoverInfoBar(data) {
+            if (!data) {
+                hoverInfoBar.innerHTML = "O: --  H: --  L: --  C: --";
+                hoverInfoBar.style.color = "#e5edf5";
+                return;
+            }
+
+            const open = data.open;
+            const high = data.high;
+            const low = data.low;
+            const close = data.close;
+
+            hoverInfoBar.innerHTML = `O: ${open.toFixed(2)}  H: ${high.toFixed(2)}  L: ${low.toFixed(2)}  C: ${close.toFixed(2)}`;
+
+            if (close > open) {
+                hoverInfoBar.style.color = "#00ff88";
+            } else if (close < open) {
+                hoverInfoBar.style.color = "#ff3b3b";
+            } else {
+                hoverInfoBar.style.color = "#e5edf5";
+            }
+        }
+
+        function initializeChart() {
+            if (!window.LightweightCharts || typeof window.LightweightCharts.createChart !== "function") {
+                throw new Error("Lightweight Charts did not load correctly.");
+            }
+
+            chart = window.LightweightCharts.createChart(chartContainer, {
+                width: Math.max(chartContainer.clientWidth, 280),
+                height: Math.max(chartContainer.clientHeight || 420, 320),
+                layout: {
+                    background: { color: "#0b1220" },
+                    textColor: "#e2e8f0",
+                    fontFamily: "Segoe UI, Tahoma, sans-serif",
+                },
+                grid: {
+                    vertLines: { color: "rgba(148, 163, 184, 0.14)" },
+                    horzLines: { color: "rgba(148, 163, 184, 0.14)" },
+                },
+                crosshair: {
+                    vertLine: { color: "rgba(226, 232, 240, 0.35)", width: 1 },
+                    horzLine: { color: "rgba(226, 232, 240, 0.35)", width: 1 },
+                },
+                rightPriceScale: {
+                    visible: true,
+                    ticksVisible: true,
+                    autoScale: true,
+                    borderColor: "rgba(148, 163, 184, 0.2)",
+                    borderVisible: true,
+                    minimumWidth: 115,
+                    scaleMargins: { top: 0.1, bottom: 0.1 },
+                },
+                timeScale: {
+                    borderColor: "rgba(148, 163, 184, 0.2)",
+                    visible: true,
+                    timeVisible: true,
+                    secondsVisible: false,
+                    barSpacing: 6,
+                    minBarSpacing: 3,
+                    rightBarStaysOnScroll: true,
+                },
+                localization: {
+                    priceFormatter: (price) => formatPrice(price),
+                },
+                handleScroll: {
+                    mouseWheel: true,
+                    pressedMouseMove: true,
+                    horzTouchDrag: true,
+                    vertTouchDrag: true,
+                },
+                handleScale: {
+                    mouseWheel: true,
+                    pinch: true,
+                    axisPressedMouseMove: true,
+                },
+            });
+
+            chartContainer.appendChild(drawCanvas);
+
+            createSeries();
+            resizeChart();
+            chart.priceScale("right").applyOptions({
+                visible: true,
+                ticksVisible: true,
+                autoScale: true,
+                minimumWidth: 115,
+                borderColor: "rgba(148, 163, 184, 0.2)",
+            });
+            chart.timeScale().applyOptions({
+                barSpacing: 6,
+                minBarSpacing: 3,
+                visible: true,
+                rightBarStaysOnScroll: true,
+                timeVisible: true,
+            });
+            chart.timeScale().fitContent();
+            chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+                scheduleDrawingRedraw();
+            });
+
+            chart.subscribeCrosshairMove((param) => {
+                if (!param || !param.seriesData || !series) {
+                    updateHoverInfoBar(null);
+                    return;
+                }
+
+                const candle = param.seriesData.get(series);
+                if (!candle) {
+                    updateHoverInfoBar(null);
+                    return;
+                }
+
+                updateHoverInfoBar(candle);
+            });
+
+            window.addEventListener("resize", scheduleChartResize);
+            scheduleChartResize();
+        }
+
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = url;
+                script.async = true;
+                script.onload = resolve;
+                script.onerror = () => reject(new Error(`Failed to load ${url}`));
+                document.head.appendChild(script);
+            });
+        }
+
+        function ensureQtWebChannelScript() {
+            if (typeof QWebChannel === "function") {
+                return Promise.resolve();
+            }
+
+            if (!(window.qt && window.qt.webChannelTransport)) {
+                return Promise.resolve();
+            }
+
+            const existingScript = document.querySelector('script[data-qt-webchannel="true"]');
+            if (existingScript) {
+                return new Promise((resolve, reject) => {
+                    existingScript.addEventListener("load", resolve, { once: true });
+                    existingScript.addEventListener("error", () => reject(new Error("Failed to load Qt WebChannel script.")), { once: true });
+                });
+            }
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = "qrc:///qtwebchannel/qwebchannel.js";
+                script.async = true;
+                script.dataset.qtWebchannel = "true";
+                script.onload = resolve;
+                script.onerror = () => reject(new Error("Failed to load Qt WebChannel script."));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function ensureChartLibrary() {
+            if (window.LightweightCharts) {
+                return;
+            }
+
+            const sources = [
+                "https://cdn.jsdelivr.net/npm/lightweight-charts/dist/lightweight-charts.standalone.production.js",
+                "https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js",
+            ];
+
+            let lastError = null;
+            for (const source of sources) {
+                try {
+                    await loadScript(source);
+                    if (window.LightweightCharts) {
+                        return;
+                    }
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+
+            throw lastError || new Error("Unable to load Lightweight Charts.");
+        }
+
+        function requestMarket(symbol = activeSymbol, timeframe = activeTimeframe) {
+            if (!bridge) {
+                return;
+            }
+
+            const cleanSymbol = String(symbol || "").trim().toUpperCase();
+            if (!cleanSymbol) {
+                setStatus("Enter a symbol like BTCUSDT.", true);
+                return;
+            }
+
+            if (!canSwitchSymbol(cleanSymbol)) {
+                symbolInput.value = activeSymbol;
+                return;
+            }
+
+            setOverlay(`Loading ${cleanSymbol} ${timeframe} candles...`, true);
+            bridge.reloadMarket(cleanSymbol, timeframe);
+        }
+
+        async function handleSignup() {
+            const username = signupUsernameInput.value.trim();
+            const email = authEmailInput.value.trim().toLowerCase();
+            const password = authPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (!username) {
+                showAuthMessage("Username is required.");
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showAuthMessage("Enter a valid email address.");
+                return;
+            }
+
+            if (password.length < 8) {
+                showAuthMessage("Password must be at least 8 characters.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAuthMessage("Passwords do not match.");
+                return;
+            }
+
+            authSubmitButton.disabled = true;
+            try {
+                const client = await ensureSupabaseClient();
+                if (!client) {
+                    showAuthMessage("Authentication service is unavailable.");
+                    return;
+                }
+
+                const existingUsername = await client
+                    .from("users")
+                    .select("id")
+                    .eq("username", username)
+                    .limit(1);
+                console.log("[supabase] signup username lookup response", existingUsername);
+
+                if (existingUsername.error) {
+                    logSupabaseError("signup username lookup failed", existingUsername.error);
+                    showAuthMessage(existingUsername.error.message || "Unable to verify username.");
+                    return;
+                }
+
+                const existingUser = Array.isArray(existingUsername.data) ? existingUsername.data[0] : existingUsername.data;
+                if (existingUser) {
+                    showAuthMessage("Username already exists.");
+                    return;
+                }
+
+                const signupResult = await client.auth.signUp(
+                    {
+                        email,
+                        password,
+                    },
+                    {
+                        data: {
+                            username,
+                        },
+                    }
+                );
+                console.log("[supabase] auth signup response", signupResult);
+
+                if (signupResult.error) {
+                    logSupabaseError("auth signup failed", signupResult.error);
+                    showAuthMessage(signupResult.error.message || "Unable to create account.");
+                    return;
+                }
+
+                const authUser = signupResult.user || signupResult.session?.user || null;
+                if (authUser) {
+                    currentUser = {
+                        username,
+                        email,
+                        authUserId: authUser.id,
+                        dbUserId: null,
+                        watchlist: [],
+                    };
+                    await ensureCurrentUserDatabaseRecord();
+                    if (signupResult.session) {
+                        await client.auth.signOut();
+                    }
+                    currentUser = null;
+                }
+
+                clearLegacyAuthStorage();
+                showAuthMessage("Account created. You can log in now.", false);
+                clearAuthInputs();
+                authEmailInput.value = email;
+                setAuthMode("login");
+            } finally {
+                authSubmitButton.disabled = false;
+            }
+        }
+
+        async function handleLogin() {
+            const email = authEmailInput.value.trim().toLowerCase();
+            const password = authPasswordInput.value;
+
+            if (!isValidEmail(email)) {
+                showAuthMessage("Enter a valid email address.");
+                return;
+            }
+
+            if (!password) {
+                showAuthMessage("Password is required.");
+                return;
+            }
+
+            authSubmitButton.disabled = true;
+            try {
+                const client = await ensureSupabaseClient();
+                if (!client) {
+                    showAuthMessage("Authentication service is unavailable.");
+                    return;
+                }
+
+                const loginResult = await client.auth.signIn({
+                    email,
+                    password,
+                });
+                console.log("[supabase] auth login response", loginResult);
+
+                if (loginResult.error || !loginResult.user) {
+                    if (loginResult.error) {
+                        logSupabaseError("auth login failed", loginResult.error);
+                    }
+                    showAuthMessage(loginResult.error?.message || "Invalid email or password.");
+                    return;
+                }
+
+                setRememberPreference(rememberMeInput.checked);
+                clearLegacyAuthStorage();
+
+                currentUser = {
+                    username: loginResult.user.user_metadata?.username || email.split("@")[0],
+                    email: loginResult.user.email || email,
+                    authUserId: loginResult.user.id,
+                    dbUserId: null,
+                    watchlist: [],
+                };
+
+                showAuthMessage("");
+                await startAppRuntime();
+            } finally {
+                authSubmitButton.disabled = false;
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                const client = await ensureSupabaseClient();
+                if (client) {
+                    const result = await client.auth.signOut();
+                    console.log("[supabase] auth logout response", result);
+                    if (result?.error) {
+                        logSupabaseError("auth logout failed", result.error);
+                    }
+                }
+            } catch (error) {
+                logSupabaseError("handleLogout failed", error);
+            }
+
+            currentUser = null;
+            setRememberPreference(false);
+            clearLegacyAuthStorage();
+            setAuthMode("login");
+            clearAuthInputs();
+            renderCurrentUser();
+            renderWatchlist();
+            showAuthShell();
+        }
+
+        // History Management
+        function openHistory() {
+            drawerBackdrop.style.display = "block";
+            historyDrawer.style.display = "flex";
+            drawerBackdrop.classList.remove("hidden");
+            historyDrawer.classList.remove("hidden");
+        }
+
+        function closeHistory() {
+            drawerBackdrop.classList.add("hidden");
+            historyDrawer.classList.add("hidden");
+            drawerBackdrop.style.display = "none";
+            historyDrawer.style.display = "none";
+        }
+
+        // UI Controls
+        function wireUi() {
+            authSwitchButton.addEventListener("click", () => {
+                setAuthMode(authMode === "login" ? "signup" : "login");
+            });
+            authSubmitButton.addEventListener("click", async () => {
+                if (authMode === "signup") {
+                    await handleSignup();
+                    return;
+                }
+
+                await handleLogin();
+            });
+            [signupUsernameInput, authEmailInput, authPasswordInput, confirmPasswordInput].forEach((input) => {
+                input.addEventListener("keydown", async (e) => {
+                    if (e.key !== "Enter") {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    if (authMode === "signup") {
+                        await handleSignup();
+                        return;
+                    }
+
+                    await handleLogin();
+                });
+            });
+            applyButton.addEventListener("click", () => {
+                const selection = resolveSymbolSelection(symbolInput.value);
+                if (selection) {
+                    selectSymbolOption(selection);
+                }
+            });
+            watchlistToggleButton.addEventListener("click", () => {
+                toggleWatchlistSymbol(activeSymbol);
+            });
+            addMaButton.onclick = () => {
+                const period = parseInt(maPeriodInput.value, 10);
+                const color = maColorInput.value;
+
+                if (!period || period <= 0) return;
+
+                if (maList.length >= 5) {
+                    alert("Maximum 5 MA allowed");
+                    return;
+                }
+
+                if (maList.some((ma) => ma.period === period)) {
+                    alert("MA already exists");
+                    return;
+                }
+
+                const maSeries = createMovingAverageSeries(color);
+                if (!maSeries) {
+                    return;
+                }
+
+                const ma = { period, color, series: maSeries };
+                maList.push(ma);
+                indicators.ma = maList;
+
+                renderMAList();
+                updateAllMA();
+            };
+            indicatorBtn.onclick = () => {
+                maPanel.classList.add("hidden");
+                maListContainer.classList.add("hidden");
+                rsiSettings.classList.add("hidden");
+                indicatorPanel.classList.toggle("hidden");
+            };
+            drawToolsBtn.onclick = () => {
+                indicatorPanel.classList.add("hidden");
+                drawPanel.classList.toggle("hidden");
+            };
+            drawColorInput.oninput = (e) => {
+                currentColor = e.target.value;
+            };
+            applyRSIButton.onclick = () => {
+                rsiPeriod = Number(rsiPeriodInput.value) || 14;
+                showRSI();
+            };
+            document.querySelectorAll(".indicator-item").forEach((item) => {
+                item.onclick = () => {
+                    const type = item.dataset.type;
+
+                    if (type === "ma") openMAPanel();
+                    if (type === "rsi") showRSI();
+                    if (type === "volume") showVolume();
+                };
+            });
+            document.querySelectorAll("#drawPanel div[data-tool]").forEach((item) => {
+                item.onclick = () => {
+                    setDrawingMode(item.dataset.tool);
+                    drawPanel.classList.add("hidden");
+                };
+            });
+            clearDrawingsButton.onclick = () => {
+                clearAllDrawings();
+                drawPanel.classList.add("hidden");
+                setDrawingMode(null);
+            };
+            deleteLineButton.onclick = () => {
+                if (!selectedLine) {
+                    return;
+                }
+
+                drawings = drawings.filter((line) => line !== selectedLine);
+                selectedLine = null;
+                dragStart = null;
+                saveAppState();
+                redrawDrawings();
+                disableDrawingMode();
+            };
+            removeRSIButton.onclick = () => {
+                hideRSIIndicator();
+            };
+            removeVolumeButton.onclick = () => {
+                hideVolumeIndicator();
+            };
+            mainChartShell.addEventListener("touchstart", (e) => {
+                if (currentTool || isDragging || !series || !chart) {
+                    return;
+                }
+
+                const touch = e.touches[0];
+                if (!touch) {
+                    return;
+                }
+
+                const rect = chartContainer.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                const nearDrawing = drawings.some((line) => isNearLine(x, y, line));
+
+                if (!nearDrawing) {
+                    return;
+                }
+
+                enableDrawingMode();
+                const mouseDownEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                drawCanvas.dispatchEvent(mouseDownEvent);
+                e.preventDefault();
+            }, { passive: false });
+            mainChartShell.addEventListener("touchmove", (e) => {
+                if (!isDragging || !selectedLine) {
+                    return;
+                }
+
+                const touch = e.touches[0];
+                if (!touch) {
+                    return;
+                }
+
+                const mouseMoveEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                drawCanvas.dispatchEvent(mouseMoveEvent);
+                e.preventDefault();
+            }, { passive: false });
+            mainChartShell.addEventListener("touchend", (e) => {
+                if (!isDragging && !currentTool) {
+                    return;
+                }
+
+                drawCanvas.dispatchEvent(new MouseEvent("mouseup", {
+                    bubbles: true,
+                    cancelable: true,
+                }));
+                e.preventDefault();
+            }, { passive: false });
+            drawCanvas.addEventListener("touchstart", (e) => {
+                if (!currentTool && !selectedLine) {
+                    return;
+                }
+
+                const touch = e.touches[0];
+                if (!touch) {
+                    return;
+                }
+
+                const mouseDownEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                drawCanvas.dispatchEvent(mouseDownEvent);
+                e.stopPropagation();
+                e.preventDefault();
+            }, { passive: false });
+            drawCanvas.addEventListener("touchmove", (e) => {
+                if (!isDragging || !selectedLine) {
+                    return;
+                }
+
+                const touch = e.touches[0];
+                if (!touch) {
+                    return;
+                }
+
+                const mouseMoveEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                drawCanvas.dispatchEvent(mouseMoveEvent);
+                e.stopPropagation();
+                e.preventDefault();
+            }, { passive: false });
+            drawCanvas.addEventListener("touchend", (e) => {
+                const touch = e.changedTouches[0];
+                if (touch && currentTool) {
+                    const mouseClickEvent = new MouseEvent("click", {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        bubbles: true,
+                        cancelable: true,
+                    });
+                    drawCanvas.dispatchEvent(mouseClickEvent);
+                }
+
+                drawCanvas.dispatchEvent(new MouseEvent("mouseup", {
+                    bubbles: true,
+                    cancelable: true,
+                }));
+                e.stopPropagation();
+                e.preventDefault();
+            }, { passive: false });
+            drawCanvas.addEventListener("click", (e) => {
+                if (!currentTool || e.target.closest("#indicatorPanel, #drawPanel")) {
+                    return;
+                }
+
+                const rect = chartContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                if (currentTool === "horizontal") {
+                    const price = series.coordinateToPrice(y);
+                    if (price === null) {
+                        return;
+                    }
+
+                    drawings.push({ type: "horizontal", price, color: currentColor });
+                    selectedLine = drawings[drawings.length - 1];
+                    saveAppState();
+                    redrawDrawings();
+                    setDrawingMode(null);
+                    return;
+                }
+
+                if (currentTool === "trend") {
+                    const time = chart.timeScale().coordinateToTime(x);
+                    const price = series.coordinateToPrice(y);
+                    if (time === null || price === null) {
+                        return;
+                    }
+
+                    tempPoints.push({ time, price });
+
+                    if (tempPoints.length === 2) {
+                        drawings.push({
+                            type: "trend",
+                            p1: tempPoints[0],
+                            p2: tempPoints[1],
+                            color: currentColor,
+                        });
+                        tempPoints = [];
+                        selectedLine = drawings[drawings.length - 1];
+                        saveAppState();
+                        redrawDrawings();
+                        disableDrawingMode();
+                        setDrawingMode(null);
+                    }
+                    return;
+                }
+
+                if (currentTool === "ray") {
+                    const time = chart.timeScale().coordinateToTime(x);
+                    const price = series.coordinateToPrice(y);
+                    if (time === null || price === null) {
+                        return;
+                    }
+
+                    tempPoints.push({ time, price });
+
+                    if (tempPoints.length === 2) {
+                        drawings.push({
+                            type: "ray",
+                            p1: tempPoints[0],
+                            p2: tempPoints[1],
+                            color: currentColor,
+                        });
+                        tempPoints = [];
+                        selectedLine = drawings[drawings.length - 1];
+                        saveAppState();
+                        redrawDrawings();
+                        disableDrawingMode();
+                        setDrawingMode(null);
+                    }
+                }
+            });
+            drawCanvas.addEventListener("mousedown", (e) => {
+                if (e.target.closest("#indicatorPanel, #drawPanel")) {
+                    return;
+                }
+
+                const rect = chartContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                selectedLine = null;
+                for (let i = drawings.length - 1; i >= 0; i--) {
+                    const line = drawings[i];
+
+                    if (isNearLine(x, y, line)) {
+                        selectedLine = line;
+                        break;
+                    }
+                }
+
+                redrawDrawings();
+                if (selectedLine) {
+                    isDragging = true;
+                    enableDrawingMode();
+
+                    const time = chart.timeScale().coordinateToTime(x);
+                    const price = series.coordinateToPrice(y);
+
+                    if (time === null || price === null) return;
+
+                    dragStart = { time, price };
+
+                    e.preventDefault();
+                }
+            });
+            drawCanvas.addEventListener("mousemove", (e) => {
+                if (!isDragging || !selectedLine || e.target.closest("#indicatorPanel, #drawPanel")) {
+                    return;
+                }
+
+                const rect = chartContainer.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const newTime = chart.timeScale().coordinateToTime(x);
+                const newPrice = series.coordinateToPrice(y);
+
+                if (!dragStart || newTime === null || newPrice === null) {
+                    return;
+                }
+
+                const dt = newTime - dragStart.time;
+                const dp = newPrice - dragStart.price;
+
+                if (selectedLine.type === "trend" || selectedLine.type === "ray") {
+                    selectedLine.p1.time += dt;
+                    selectedLine.p1.price += dp;
+                    selectedLine.p2.time += dt;
+                    selectedLine.p2.price += dp;
+                }
+
+                if (selectedLine.type === "horizontal") {
+                    selectedLine.price = newPrice;
+                }
+                dragStart = { time: newTime, price: newPrice };
+
+                redrawDrawings();
+                saveAppState();
+                e.preventDefault();
+            });
+            drawCanvas.addEventListener("mouseup", () => {
+                isDragging = false;
+                dragStart = null;
+                if (!currentTool) {
+                    disableDrawingMode();
+                }
+            });
+            drawCanvas.addEventListener("mouseleave", () => {
+                isDragging = false;
+                dragStart = null;
+                if (!currentTool) {
+                    disableDrawingMode();
+                }
+            });
+            symbolInput.addEventListener("input", () => {
+                symbolInput.value = symbolInput.value.toUpperCase();
+                renderSymbolSuggestions(symbolInput.value);
+            });
+            symbolInput.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    const selection = resolveSymbolSelection(symbolInput.value);
+                    if (selection) {
+                        selectSymbolOption(selection);
+                    }
+                } else if (e.key === "Escape") {
+                    closeSymbolSuggestions();
+                }
+            });
+            symbolInput.addEventListener("focus", () => {
+                renderSymbolSuggestions(symbolInput.value);
+            });
+            symbolInput.addEventListener("blur", () => {
+                setTimeout(() => closeSymbolSuggestions(), 120);
+            });
+
+            timeframeButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const timeframe = button.dataset.timeframe;
+                    setActiveTimeframe(timeframe);
+                    requestMarket(symbolInput.value, timeframe);
+                });
+            });
+
+            if (openBuyModalButton) {
+                openBuyModalButton.disabled = false;
+                openBuyModalButton.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleMarketBuy();
+                };
+            }
+
+            if (openSellModalButton) {
+                openSellModalButton.disabled = false;
+                openSellModalButton.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleMarketSell();
+                };
+            }
+            clearOrdersButton.addEventListener("click", clearPendingOrders);
+            logoutButton.addEventListener("click", handleLogout);
+            closeTradeModalButton.addEventListener("click", closeTradeModal);
+            cancelTradeButton.addEventListener("click", closeTradeModal);
+            confirmTradeButton.addEventListener("click", submitTradeTicket);
+            orderTypeSelect.addEventListener("change", updateTradeModalFields);
+            modalAmountInput.addEventListener("input", updateTradeSummary);
+            modalLimitPriceInput.addEventListener("input", updateTradeSummary);
+            modalStopLossInput.addEventListener("input", updateTradeSummary);
+            modalTakeProfitInput.addEventListener("input", updateTradeSummary);
+
+            historyButton.addEventListener("click", openHistory);
+            closeHistoryButton.addEventListener("click", closeHistory);
+            drawerBackdrop.addEventListener("click", closeHistory);
+            tradeModal.addEventListener("click", (e) => {
+                if (e.target === tradeModal) {
+                    closeTradeModal();
+                }
+            });
+            document.addEventListener("click", (e) => {
+                if (!indicatorPanel.contains(e.target) && e.target !== indicatorBtn) {
+                    indicatorPanel.classList.add("hidden");
+                }
+
+                if (!drawPanel.contains(e.target) && e.target !== drawToolsBtn) {
+                    drawPanel.classList.add("hidden");
+                }
+            });
+        }
+
+        function wireBridge() {
+            bridge.marketChanged.connect((symbol, timeframe) => {
+                syncMarket(symbol, timeframe);
+            });
+
+            bridge.historicalDataReady.connect((payload) => {
+                const data = JSON.parse(payload);
+                if (!series) {
+                    setStatus("Candlestick series is not ready.", true);
+                    return;
+                }
+
+                series.setData(data);
+                currentData = data;
+                updateAllMA();
+                updateIndicators();
+                scheduleChartResize();
+                chart.priceScale("right").applyOptions({ visible: true, ticksVisible: true, autoScale: true, minimumWidth: 115 });
+                chart.timeScale().fitContent();
+                scheduleDrawingRedraw();
+                isLoadingData = false;
+                setOverlay("", false);
+                setStatus(`Loaded ${currentData?.length || 0} candles for ${activeSymbol} ${activeTimeframe}.`, false);
+            });
+
+            bridge.candleUpdated.connect((payload) => {
+                if (isLoadingData) {
+                    return;
+                }
+
+                const candle = JSON.parse(payload);
+                if (series) {
+                    series.update(candle);
+                }
+
+                if (!currentData.length) {
+                    currentData = [candle];
+                } else if (currentData[currentData.length - 1].time === candle.time) {
+                    currentData[currentData.length - 1] = candle;
+                } else {
+                    currentData.push(candle);
+                }
+
+                updateAllMA();
+                updateIndicators();
+                scheduleDrawingRedraw();
+            });
+
+            bridge.livePriceChanged.connect((symbol, price, change, percent) => {
+                updatePrice(symbol, price, change, percent);
+                handleTradingTick(symbol, price);
+                renderWatchlist();
+            });
+
+            bridge.loadingStateChanged.connect((isLoading, message) => {
+                setOverlay(message || "Loading...", Boolean(isLoading));
+            });
+
+            bridge.statusMessage.connect((message, isError) => {
+                if (message) {
+                    setStatus(message, isError);
+                } else if (!isError) {
+                    setStatus("", false);
+                }
+            });
+        }
+
+        async function startAppRuntime() {
+            tradingState.cashBalance = tradingState.initialBalance;
+            tradingState.trades = [];
+            if (currentUser) {
+                currentUser = {
+                    ...currentUser,
+                    subscription: null,
+                };
+            }
+            loadAppState();
+
+            try {
+                await loadCurrentUserWatchlistFromDatabase();
+            } catch (error) {
+                logSupabaseError("startup watchlist load failed", error);
+                notifySupabaseUnavailable(error);
+                renderWatchlist();
+            }
+
+            await loadCurrentUserPaperBalanceFromDatabase();
+            await loadCurrentUserTradeHistoryFromDatabase();
+            await loadCurrentUserSubscriptionFromDatabase();
+
+            showAuthenticatedApp();
+            refreshTradingUi();
+
+            if (appStarted) {
+                refreshTradingUi();
+                return;
+            }
+
+            refreshTradingUi();
+            loadSymbolUniverse();
+            setOverlay("Loading chart library...", true);
+
+            try {
+                await ensureChartLibrary();
+                initializeChart();
+            } catch (error) {
+                console.error(error);
+                setOverlay("Unable to load chart library. Check internet access.", true);
+                setStatus(error.message, true);
+                return;
+            }
+
+            if (window.qt && window.qt.webChannelTransport && typeof QWebChannel === "function") {
+                new QWebChannel(window.qt.webChannelTransport, (channel) => {
+                    bridge = channel.objects.bridge;
+                    wireBridge();
+                    bridge.pageReady();
+                    appStarted = true;
+                });
+                return;
+            }
+
+            if (window.qt && window.qt.webChannelTransport) {
+                try {
+                    await ensureQtWebChannelScript();
+                    if (typeof QWebChannel === "function") {
+                        new QWebChannel(window.qt.webChannelTransport, (channel) => {
+                            bridge = channel.objects.bridge;
+                            wireBridge();
+                            bridge.pageReady();
+                            appStarted = true;
+                        });
+                        return;
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            bridge = createBrowserBridge();
+            wireBridge();
+            bridge.pageReady();
+            appStarted = true;
+        }
+
+        async function bootstrap() {
+            wireUi();
+            setAuthMode("login");
+            renderCurrentUser();
+
+            const client = await ensureSupabaseClient();
+            if (!client) {
+                showAuthShell();
+                return;
+            }
+
+            const remembered = getRememberPreference();
+            const session = typeof client.auth.session === "function" ? client.auth.session() : null;
+            console.log("[supabase] bootstrap auth session", session);
+
+            if (session?.user && remembered) {
+                currentUser = {
+                    username: session.user.user_metadata?.username || session.user.email?.split("@")[0] || "Trader",
+                    email: session.user.email,
+                    authUserId: session.user.id,
+                    dbUserId: null,
+                    watchlist: [],
+                };
+                await startAppRuntime();
+                return;
+            }
+
+            if (session?.user && !remembered) {
+                await client.auth.signOut();
+            }
+
+            clearLegacyAuthStorage();
+            showAuthShell();
+        }
+
+        bootstrap();
+    </script>
+</body>
+
+</html>
