@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.parse import urlencode
 
 from PyQt5.QtCore import QObject, Qt, QUrl, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QDesktopServices
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineSettings, QWebEngineView
@@ -49,6 +49,41 @@ class ChartBridge(QObject):
         self._page_ready = True
         self.marketChanged.emit(self.symbol, self.interval)
         self.reloadMarket(self.symbol, self.interval)
+
+    def _trade_history_folder(self) -> Path:
+        documents_dir = Path.home() / "Documents"
+        base_dir = documents_dir if documents_dir.exists() else Path.home()
+        return base_dir / "PaperTraderHistory"
+
+    @pyqtSlot(str, result=str)
+    def saveTradeHistoryCsv(self, csv_content):
+        try:
+            folder = self._trade_history_folder()
+            folder.mkdir(parents=True, exist_ok=True)
+            file_path = folder / "trade_history.csv"
+            file_path.write_text(csv_content, encoding="utf-8", newline="")
+            return json.dumps(
+                {
+                    "ok": True,
+                    "path": str(file_path),
+                    "folder": str(folder),
+                }
+            )
+        except Exception as exc:
+            self.statusMessage.emit(f"CSV export failed: {exc}", True)
+            return json.dumps({"ok": False, "error": str(exc)})
+
+    @pyqtSlot(result=str)
+    def openTradeHistoryFolder(self):
+        try:
+            folder = self._trade_history_folder()
+            folder.mkdir(parents=True, exist_ok=True)
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder))):
+                raise RuntimeError("Unable to open export folder.")
+            return json.dumps({"ok": True, "folder": str(folder)})
+        except Exception as exc:
+            self.statusMessage.emit(f"Open folder failed: {exc}", True)
+            return json.dumps({"ok": False, "error": str(exc)})
 
     @pyqtSlot(str, str)
     def reloadMarket(self, symbol, interval):
