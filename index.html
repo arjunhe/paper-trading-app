@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Crypto Candlestick Chart</title>
+    <title>NAT Trade - Paper Trading Platform</title>
     <style>
         :root {
             --bg: #0b1220;
@@ -41,6 +41,16 @@
             overflow-x: hidden;
         }
 
+        body.landing-visible {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        body.landing-visible::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
         button,
         input,
         select,
@@ -67,6 +77,654 @@
 
         #app.hidden-app {
             display: none;
+        }
+
+        .landing-shell {
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            background:
+                radial-gradient(circle at 78% -6%, rgba(96, 165, 250, 0.24), transparent 20%),
+                radial-gradient(circle at 22% 31%, rgba(14, 165, 233, 0.15), transparent 23%),
+                radial-gradient(circle at 36% 42%, rgba(168, 85, 247, 0.14), transparent 20%),
+                linear-gradient(135deg, #020713 0%, #050b16 48%, #020617 100%);
+            color: #f8fafc;
+            position: relative;
+        }
+
+        .landing-shell::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
+        .landing-shell.hidden {
+            display: none;
+        }
+
+        .landing-shell::before,
+        .landing-shell::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+            inset: 0;
+        }
+
+        .landing-shell::before {
+            background:
+                radial-gradient(circle at 17% 22%, rgba(14, 165, 233, 0.2) 0 1px, transparent 2px),
+                linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px);
+            background-size: 18px 18px, 72px 72px, 72px 72px;
+            mask-image: radial-gradient(circle at 19% 28%, #000 0%, transparent 26%),
+                radial-gradient(circle at 72% 42%, #000 0%, transparent 58%);
+        }
+
+        .landing-shell::after {
+            background:
+                radial-gradient(circle at 48% 0%, rgba(125, 211, 252, 0.2), transparent 18%),
+                linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.72) 100%);
+        }
+
+        .landing-page {
+            position: relative;
+            z-index: 1;
+            width: min(1500px, calc(100% - 64px));
+            margin: 0 auto;
+            padding: 24px 0 0;
+        }
+
+        .landing-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 22px;
+            min-height: 70px;
+        }
+
+        .landing-brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 260px;
+        }
+
+        .landing-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 0;
+            display: grid;
+            place-items: center;
+            color: transparent;
+            background:
+                linear-gradient(135deg, transparent 0 20%, #67e8f9 20% 36%, transparent 36%),
+                linear-gradient(45deg, #0b63ff 0 31%, transparent 31%),
+                linear-gradient(135deg, transparent 47%, #22d3ee 47% 61%, transparent 61%),
+                linear-gradient(160deg, transparent 0 55%, #0ea5e9 55% 73%, transparent 73%),
+                linear-gradient(315deg, #1d4ed8 0 34%, transparent 34%);
+            clip-path: polygon(2% 4%, 31% 4%, 52% 32%, 78% 4%, 98% 4%, 98% 25%, 72% 25%, 55% 44%, 75% 76%, 98% 76%, 98% 96%, 68% 96%, 49% 70%, 25% 96%, 2% 96%, 2% 76%, 26% 76%, 41% 55%, 22% 25%, 2% 25%);
+            box-shadow: 0 0 32px rgba(14, 165, 233, 0.35);
+        }
+
+        .landing-brand-title {
+            font-size: 27px;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 1;
+        }
+
+        .landing-brand-subtitle {
+            margin-top: 6px;
+            color: #cbd5e1;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .landing-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 34px;
+            flex: 1;
+        }
+
+        .landing-links a {
+            color: #dbeafe;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 850;
+            padding: 12px 0;
+            position: relative;
+            transition: color 0.16s ease;
+        }
+
+        .landing-links a:hover,
+        .landing-links a.active {
+            color: #0ea5e9;
+        }
+
+        .landing-links a.active::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 2px;
+            height: 2px;
+            border-radius: 999px;
+            background: #0ea5e9;
+        }
+
+        .landing-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .landing-language {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #e5edf5;
+            font-weight: 900;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .landing-button {
+            min-height: 48px;
+            border-radius: 7px;
+            padding: 0 28px;
+            border: 1px solid rgba(148, 163, 184, 0.34);
+            background: rgba(2, 6, 23, 0.38);
+            color: #f8fafc;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+            transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+        }
+
+        .landing-button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(56, 189, 248, 0.7);
+            background: rgba(15, 23, 42, 0.82);
+        }
+
+        .landing-button.primary {
+            border-color: rgba(59, 130, 246, 0.8);
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            box-shadow: 0 18px 48px rgba(37, 99, 235, 0.35);
+        }
+
+        .landing-hero {
+            display: grid;
+            grid-template-columns: minmax(430px, 0.76fr) minmax(650px, 1.24fr);
+            align-items: center;
+            gap: 20px;
+            padding: 90px 0 38px;
+        }
+
+        .landing-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 35px;
+            padding: 0 17px;
+            border-radius: 999px;
+            color: #34d399;
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.22);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .landing-product-title {
+            display: none;
+        }
+
+        .landing-title {
+            margin: 28px 0 0;
+            max-width: 610px;
+            font-size: clamp(48px, 4.8vw, 72px);
+            line-height: 1.08;
+            font-weight: 950;
+            letter-spacing: -0.065em;
+        }
+
+        .landing-title span {
+            color: #1d8cff;
+        }
+
+        .landing-subtitle {
+            margin: 20px 0 0;
+            max-width: 560px;
+            color: #cbd5e1;
+            font-size: 18px;
+            line-height: 1.65;
+        }
+
+        .landing-cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 32px;
+        }
+
+        .landing-cta-row .landing-button {
+            min-width: 118px;
+            min-height: 54px;
+        }
+
+        .landing-cta-row .landing-button.primary {
+            min-width: 230px;
+        }
+
+        .landing-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 34px;
+            margin-top: 42px;
+            max-width: 650px;
+        }
+
+        .landing-stat {
+            display: grid;
+            gap: 5px;
+        }
+
+        .landing-stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            color: #38bdf8;
+            background: rgba(14, 165, 233, 0.14);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            font-weight: 900;
+        }
+
+        .landing-stat-value {
+            font-size: 25px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .landing-stat-label {
+            color: #cbd5e1;
+            font-size: 14px;
+        }
+
+        .landing-preview-wrap {
+            position: relative;
+            min-height: 580px;
+        }
+
+        .landing-preview {
+            position: absolute;
+            inset: 0 -26px auto 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 190px;
+            gap: 12px;
+            min-height: 522px;
+            transform: perspective(1400px) rotateY(-7.5deg) rotateX(2deg) rotateZ(-1.5deg);
+            transform-origin: center;
+        }
+
+        .mock-terminal,
+        .mock-side-card,
+        .landing-feature-card,
+        .market-card {
+            border: 1px solid rgba(96, 165, 250, 0.18);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.84), rgba(2, 6, 23, 0.88));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 28px 80px rgba(0, 0, 0, 0.36);
+            backdrop-filter: blur(18px);
+        }
+
+        .mock-terminal {
+            position: relative;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .mock-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 58px;
+            padding: 0 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .mock-pair {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+        }
+
+        .mock-price {
+            color: #22c55e;
+            font-size: 17px;
+            font-weight: 950;
+        }
+
+        .mock-tools {
+            display: flex;
+            gap: 14px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .mock-chart {
+            position: relative;
+            min-height: 464px;
+            background:
+                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 84px 56px;
+            overflow: hidden;
+        }
+
+        .mock-chart::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 47%;
+            border-top: 1px dashed rgba(34, 197, 94, 0.55);
+        }
+
+        .mock-chart::after {
+            content: "25,400.00\A 25,200.00\A 25,000.00\A 24,800.00\A 24,600.00\A 24,400.00";
+            white-space: pre;
+            position: absolute;
+            right: 16px;
+            top: 70px;
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 11px;
+            line-height: 3.25;
+            text-align: right;
+        }
+
+        .mock-candles {
+            position: absolute;
+            inset: 68px 78px 74px 54px;
+            display: flex;
+            align-items: flex-end;
+            gap: 11px;
+        }
+
+        .mock-candle {
+            position: relative;
+            width: 10px;
+            height: var(--h);
+            border-radius: 3px;
+            background: var(--c);
+            transform: translateY(var(--y));
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.16);
+        }
+
+        .mock-candle::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: -28px;
+            bottom: -24px;
+            width: 1px;
+            transform: translateX(-50%);
+            background: var(--c);
+            opacity: 0.75;
+        }
+
+        .mock-volume {
+            position: absolute;
+            left: 54px;
+            right: 78px;
+            bottom: 30px;
+            display: flex;
+            align-items: end;
+            gap: 11px;
+            height: 58px;
+            opacity: 0.45;
+        }
+
+        .mock-volume span {
+            width: 10px;
+            height: var(--v);
+            border-radius: 2px;
+            background: var(--c);
+        }
+
+        .mock-sidebar {
+            display: grid;
+            gap: 12px;
+        }
+
+        .mock-price-tag {
+            position: absolute;
+            right: 16px;
+            top: 48%;
+            transform: translateY(-50%);
+            padding: 7px 10px;
+            border-radius: 4px;
+            background: #10b981;
+            color: white;
+            font-size: 11px;
+            font-weight: 950;
+            z-index: 2;
+        }
+
+        .mock-side-card {
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .mock-card-label {
+            color: #cbd5e1;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .mock-balance {
+            margin-top: 14px;
+            color: #00ff88;
+            font-size: 24px;
+            font-weight: 950;
+            letter-spacing: -0.04em;
+        }
+
+        .mock-profit {
+            margin-top: 18px;
+            color: #34d399;
+            line-height: 1.5;
+            font-weight: 800;
+        }
+
+        .mock-trade-button {
+            height: 44px;
+            border-radius: 7px;
+            border: 0;
+            color: white;
+            font-weight: 950;
+            cursor: default;
+        }
+
+        .mock-trade-button.buy {
+            background: linear-gradient(135deg, #10b981, #22c55e);
+        }
+
+        .mock-trade-button.sell {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .mock-watchlist {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+            font-size: 12px;
+        }
+
+        .mock-watch-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            color: #cbd5e1;
+        }
+
+        .mock-watch-row strong {
+            color: white;
+        }
+
+        .mock-watch-row .up {
+            color: #22c55e;
+        }
+
+        .mock-watch-row .down {
+            color: #ef4444;
+        }
+
+        .landing-section {
+            padding: 28px 0;
+        }
+
+        .landing-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        .landing-section-title {
+            margin: 0;
+            font-size: clamp(28px, 3.2vw, 44px);
+            letter-spacing: -0.04em;
+        }
+
+        .landing-section-copy {
+            max-width: 640px;
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+
+        .landing-feature-grid,
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .landing-feature-card,
+        .market-card {
+            border-radius: 18px;
+            padding: 18px;
+            min-height: 122px;
+            display: grid;
+            grid-template-columns: 58px minmax(0, 1fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .landing-feature-icon,
+        .market-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: rgba(37, 99, 235, 0.18);
+            color: #60a5fa;
+            font-weight: 950;
+            margin-bottom: 0;
+        }
+
+        .landing-feature-card h3,
+        .market-card h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+        }
+
+        .landing-feature-card p,
+        .market-card p {
+            margin: 0;
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .landing-trust-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 22px;
+            padding: 24px 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.13);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .landing-trust-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #cbd5e1;
+            font-weight: 800;
+        }
+
+        .landing-trust-icon {
+            color: #94a3b8;
+            font-size: 20px;
+        }
+
+        .landing-about {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(300px, 0.52fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .landing-about-card {
+            border: 1px solid rgba(96, 165, 250, 0.18);
+            border-radius: 24px;
+            padding: 28px;
+            background:
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 30%),
+                rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(16px);
+        }
+
+        .landing-about-card p {
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .landing-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 28px 0 34px;
+            border-top: 1px solid rgba(148, 163, 184, 0.14);
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .landing-footer a {
+            color: #cbd5e1;
+            text-decoration: none;
+            margin-right: 18px;
+        }
+
+        .landing-footer a:hover {
+            color: #38bdf8;
         }
 
         .auth-shell {
@@ -2184,20 +2842,6 @@
             overflow: hidden;
         }
 
-        #chart a[href*="tradingview"],
-        #chart a[href*="TradingView"],
-        #chart [title*="TradingView"],
-        #chart [aria-label*="TradingView"],
-        .indicator-chart-host a[href*="tradingview"],
-        .indicator-chart-host a[href*="TradingView"],
-        .indicator-chart-host [title*="TradingView"],
-        .indicator-chart-host [aria-label*="TradingView"] {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
-        }
-
         .hover-info-bar,
         .ohlc-box {
             position: absolute;
@@ -3070,6 +3714,38 @@
         }
 
         @media (max-width: 1240px) {
+            .landing-page {
+                width: min(1120px, calc(100% - 32px));
+            }
+
+            .landing-links {
+                gap: 16px;
+            }
+
+            .landing-hero {
+                grid-template-columns: 1fr;
+                padding-top: 56px;
+            }
+
+            .landing-preview-wrap {
+                min-height: 500px;
+            }
+
+            .landing-preview {
+                position: relative;
+                min-height: 500px;
+                transform: none;
+            }
+
+            .landing-feature-grid,
+            .market-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .landing-trust-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
             .topbar {
                 grid-template-columns: 1fr;
             }
@@ -3096,6 +3772,71 @@
         }
 
         @media (max-width: 900px) {
+            .landing-nav {
+                flex-wrap: wrap;
+            }
+
+            .landing-brand {
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+
+            .landing-links {
+                order: 3;
+                width: 100%;
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding: 6px 0 2px;
+            }
+
+            .landing-actions {
+                gap: 8px;
+            }
+
+            .landing-language {
+                display: none;
+            }
+
+            .landing-actions .landing-button {
+                min-height: 42px;
+                padding: 0 14px;
+                font-size: 13px;
+            }
+
+            .landing-hero {
+                gap: 28px;
+                padding: 40px 0 38px;
+            }
+
+            .landing-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .landing-preview {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .mock-chart {
+                min-height: 360px;
+            }
+
+            .mock-sidebar {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .mock-side-card {
+                padding: 14px;
+            }
+
+            .mock-balance {
+                font-size: 20px;
+            }
+
+            .landing-about {
+                grid-template-columns: 1fr;
+            }
+
             #app {
                 padding: 12px;
                 gap: 10px;
@@ -3232,6 +3973,171 @@
         }
 
         @media (max-width: 640px) {
+            .landing-page {
+                width: min(100% - 22px, 520px);
+                padding-top: 12px;
+            }
+
+            .landing-logo {
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                font-size: 20px;
+            }
+
+            .landing-brand-title {
+                font-size: 19px;
+            }
+
+            .landing-brand-subtitle {
+                font-size: 9px;
+            }
+
+            .landing-links {
+                gap: 18px;
+            }
+
+            .landing-links a {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+            .landing-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .landing-actions .landing-button {
+                width: 100%;
+            }
+
+            .landing-badge {
+                min-height: 30px;
+                padding: 0 12px;
+                font-size: 10px;
+            }
+
+            .landing-title {
+                margin-top: 22px;
+                font-size: clamp(42px, 13vw, 58px);
+            }
+
+            .landing-subtitle {
+                font-size: 15px;
+                line-height: 1.6;
+            }
+
+            .landing-cta-row {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 10px;
+                margin-top: 24px;
+            }
+
+            .landing-cta-row .landing-button {
+                min-height: 52px;
+                width: 100%;
+            }
+
+            .landing-cta-row .landing-button.primary {
+                min-width: 0;
+            }
+
+            .landing-stats {
+                gap: 12px;
+                margin-top: 28px;
+            }
+
+            .landing-stat-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .landing-stat-value {
+                font-size: 20px;
+            }
+
+            .landing-stat-label {
+                font-size: 12px;
+            }
+
+            .mock-terminal {
+                border-radius: 18px;
+            }
+
+            .mock-topbar {
+                min-height: 52px;
+                padding: 0 12px;
+            }
+
+            .mock-tools {
+                display: none;
+            }
+
+            .mock-chart {
+                min-height: 290px;
+            }
+
+            .mock-candles {
+                inset: 54px 38px 58px 28px;
+                gap: 7px;
+            }
+
+            .mock-candle,
+            .mock-volume span {
+                width: 7px;
+            }
+
+            .mock-volume {
+                left: 30px;
+                right: 40px;
+                gap: 7px;
+                height: 42px;
+            }
+
+            .mock-sidebar {
+                grid-template-columns: 1fr;
+            }
+
+            .landing-feature-grid,
+            .market-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .landing-feature-card,
+            .market-card {
+                grid-template-columns: 48px minmax(0, 1fr);
+                padding: 16px;
+            }
+
+            .landing-trust-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 18px 0;
+            }
+
+            .landing-trust-item {
+                justify-content: flex-start;
+            }
+
+            .landing-section {
+                padding: 36px 0;
+            }
+
+            .landing-section-head {
+                display: grid;
+            }
+
+            .landing-about-card {
+                padding: 20px;
+            }
+
+            .landing-footer {
+                display: grid;
+                gap: 12px;
+            }
+
             #app {
                 padding: 8px;
                 gap: 8px;
@@ -4538,7 +5444,197 @@
 </head>
 
 <body>
-    <div id="authShell" class="auth-shell">
+    <div id="landingShell" class="landing-shell">
+        <main class="landing-page">
+            <nav class="landing-nav" aria-label="Landing navigation">
+                <div class="landing-brand">
+                    <div class="landing-logo">N</div>
+                    <div>
+                        <div class="landing-brand-title">NAT TRADE</div>
+                        <div class="landing-brand-subtitle">Paper Trading Platform</div>
+                    </div>
+                </div>
+                <div class="landing-links">
+                    <a class="active" href="#landingHome">Home</a>
+                    <a href="#landingFeatures">Features</a>
+                    <a href="#landingMarkets">Markets</a>
+                    <a href="#landingAbout">About</a>
+                    <a href="#landingContact">Contact</a>
+                </div>
+                <div class="landing-actions">
+                    <div class="landing-language"><span aria-hidden="true">GL</span> EN v</div>
+                    <button class="landing-button" type="button" data-auth-open="login">Login</button>
+                    <button class="landing-button primary" type="button" data-auth-open="signup">Create Account</button>
+                </div>
+            </nav>
+
+            <section id="landingHome" class="landing-hero">
+                <div>
+                    <div class="landing-badge">100% Risk-Free - Practice - Improve - Succeed</div>
+                    <div class="landing-product-title">NAT Trade</div>
+                    <h1 class="landing-title">Practice Trading. <span>Master</span> the Market.</h1>
+                    <p class="landing-subtitle">
+                        Real-time paper trading platform with advanced charts, drawing tools, performance tracking,
+                        and risk-free practice.
+                    </p>
+                    <div class="landing-cta-row">
+                        <button class="landing-button primary" type="button" data-auth-open="signup">Start Paper Trading</button>
+                        <button class="landing-button" type="button" data-auth-open="login">Login</button>
+                    </div>
+                    <div class="landing-stats" aria-label="Platform statistics">
+                        <div class="landing-stat">
+                            <div class="landing-stat-icon">AT</div>
+                            <div class="landing-stat-value">50K+</div>
+                            <div class="landing-stat-label">Active Traders</div>
+                        </div>
+                        <div class="landing-stat">
+                            <div class="landing-stat-icon">PT</div>
+                            <div class="landing-stat-value">1M+</div>
+                            <div class="landing-stat-label">Paper Trades</div>
+                        </div>
+                        <div class="landing-stat">
+                            <div class="landing-stat-icon">RF</div>
+                            <div class="landing-stat-value">100%</div>
+                            <div class="landing-stat-label">Risk Free</div>
+                        </div>
+                        <div class="landing-stat">
+                            <div class="landing-stat-icon">RM</div>
+                            <div class="landing-stat-value">Real Market</div>
+                            <div class="landing-stat-label">Real Experience</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="landing-preview-wrap" aria-label="Trading dashboard preview">
+                    <div class="landing-preview">
+                        <div class="mock-terminal">
+                            <div class="mock-topbar">
+                                <div class="mock-pair"><span class="landing-logo" style="width: 28px; height: 28px;"></span> NAT TRADE</div>
+                                <div class="mock-price">24,892.45 <span style="font-size: 12px;">+1.35%</span></div>
+                                <div class="mock-tools"><span>1m</span><span>5m</span><span>15m</span><span>1h</span><span>Draw</span></div>
+                            </div>
+                            <div class="mock-chart">
+                                <div class="mock-price-tag">24,892.45</div>
+                                <div class="mock-candles">
+                                    <span class="mock-candle" style="--h: 52px; --y: 44px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 92px; --y: 25px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 68px; --y: 52px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 130px; --y: 4px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 84px; --y: 28px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 148px; --y: -8px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 96px; --y: 16px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 76px; --y: 46px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 156px; --y: -20px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 116px; --y: -2px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 82px; --y: 30px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 170px; --y: -42px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 126px; --y: -18px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 104px; --y: 8px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 112px; --y: 18px; --c: #22c55e;"></span>
+                                    <span class="mock-candle" style="--h: 78px; --y: 34px; --c: #ef4444;"></span>
+                                    <span class="mock-candle" style="--h: 94px; --y: 20px; --c: #22c55e;"></span>
+                                </div>
+                                <div class="mock-volume">
+                                    <span style="--v: 26px; --c: #22c55e;"></span>
+                                    <span style="--v: 42px; --c: #22c55e;"></span>
+                                    <span style="--v: 24px; --c: #ef4444;"></span>
+                                    <span style="--v: 50px; --c: #22c55e;"></span>
+                                    <span style="--v: 36px; --c: #ef4444;"></span>
+                                    <span style="--v: 58px; --c: #22c55e;"></span>
+                                    <span style="--v: 32px; --c: #22c55e;"></span>
+                                    <span style="--v: 28px; --c: #ef4444;"></span>
+                                    <span style="--v: 54px; --c: #22c55e;"></span>
+                                    <span style="--v: 46px; --c: #22c55e;"></span>
+                                    <span style="--v: 24px; --c: #ef4444;"></span>
+                                    <span style="--v: 58px; --c: #22c55e;"></span>
+                                    <span style="--v: 38px; --c: #ef4444;"></span>
+                                    <span style="--v: 33px; --c: #ef4444;"></span>
+                                    <span style="--v: 42px; --c: #22c55e;"></span>
+                                    <span style="--v: 30px; --c: #ef4444;"></span>
+                                    <span style="--v: 36px; --c: #22c55e;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mock-sidebar">
+                            <div class="mock-side-card">
+                                <div class="mock-card-label">Paper Balance</div>
+                                <div class="mock-balance">$100,000.00</div>
+                                <div class="mock-profit">Today's P&amp;L<br>+$1,250.75<br>(+1.25%)</div>
+                            </div>
+                            <button class="mock-trade-button buy" type="button">Buy</button>
+                            <button class="mock-trade-button sell" type="button">Sell</button>
+                            <div class="mock-side-card">
+                                <div class="mock-card-label">Watchlist</div>
+                                <div class="mock-watchlist">
+                                    <div class="mock-watch-row"><strong>BTC/USDT</strong><span>24,892.45</span><span class="up">+1.35%</span></div>
+                                    <div class="mock-watch-row"><strong>ETH/USDT</strong><span>1,682.75</span><span class="up">+0.89%</span></div>
+                                    <div class="mock-watch-row"><strong>SOL/USDT</strong><span>142.20</span><span class="down">-0.32%</span></div>
+                                    <div class="mock-watch-row"><strong>NIFTY 50</strong><span>22,124.40</span><span class="up">+0.73%</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="landingFeatures" class="landing-section">
+                <div class="landing-section-head">
+                    <h2 class="landing-section-title">Features built for practice.</h2>
+                    <p class="landing-section-copy">A focused simulator experience for learning execution, managing risk, and reviewing performance without real-money exposure.</p>
+                </div>
+                <div class="landing-feature-grid">
+                    <div class="landing-feature-card"><div class="landing-feature-icon">CH</div><div><h3>Real-Time Charts</h3><p>Live market data with advanced charting and technical analysis tools.</p></div></div>
+                    <div class="landing-feature-card"><div class="landing-feature-icon">RF</div><div><h3>Risk-Free Trading</h3><p>Practice with virtual money in real market conditions without any financial risk.</p></div></div>
+                    <div class="landing-feature-card"><div class="landing-feature-icon">TL</div><div><h3>Advanced Tools</h3><p>Trend lines, Fibonacci, indicators, drawing tools and more to analyze like a pro.</p></div></div>
+                    <div class="landing-feature-card"><div class="landing-feature-icon">PA</div><div><h3>Track Performance</h3><p>Detailed analytics and reports to track your progress and improve your strategy.</p></div></div>
+                    <div class="landing-feature-card"><div class="landing-feature-icon">FR</div><div><h3>100% Free</h3><p>No hidden charges. Practice unlimited and improve your trading skills for free.</p></div></div>
+                </div>
+                <div class="landing-trust-row">
+                    <div class="landing-trust-item"><span class="landing-trust-icon">CC</span> No Credit Card Required</div>
+                    <div class="landing-trust-item"><span class="landing-trust-icon">IS</span> Instant Sign Up</div>
+                    <div class="landing-trust-item"><span class="landing-trust-icon">AD</span> All Devices Supported</div>
+                    <div class="landing-trust-item"><span class="landing-trust-icon">SP</span> Secure &amp; Private</div>
+                </div>
+            </section>
+
+            <section id="landingMarkets" class="landing-section">
+                <div class="landing-section-head">
+                    <h2 class="landing-section-title">Markets</h2>
+                    <p class="landing-section-copy">Explore major asset classes in a clean trading workspace designed for paper trading practice.</p>
+                </div>
+                <div class="market-grid">
+                    <div class="market-card"><div class="market-icon">CR</div><h3>Crypto</h3><p>Track major crypto pairs including BTC, ETH, SOL, XRP, DOGE, and more.</p></div>
+                    <div class="market-card"><div class="market-icon">FX</div><h3>Forex</h3><p>Practice strategies around global currency markets and price movement.</p></div>
+                    <div class="market-card"><div class="market-icon">IN</div><h3>Indices</h3><p>Follow index-style market behavior and portfolio-level decision making.</p></div>
+                    <div class="market-card"><div class="market-icon">CM</div><h3>Commodities</h3><p>Explore commodity-style market setups in a risk-free simulation flow.</p></div>
+                </div>
+            </section>
+
+            <section id="landingAbout" class="landing-section">
+                <div class="landing-about">
+                    <div class="landing-about-card">
+                        <h2 class="landing-section-title">About NAT Trade</h2>
+                        <p>NAT Trade is a modern paper trading simulator for practicing market decisions with real-time charts, saved watchlists, technical indicators, drawing tools, and performance tracking. It is designed to help traders learn execution discipline and risk management without placing real-money trades.</p>
+                    </div>
+                    <div class="landing-about-card" id="landingContact">
+                        <h2 class="landing-section-title">Contact</h2>
+                        <p>Need help with account access, synchronization, or platform feedback? Contact support at <a href="mailto:traderhelpline3028@gmail.com" style="color:#38bdf8;">traderhelpline3028@gmail.com</a>.</p>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="landing-footer">
+                <div>
+                    <a href="#" data-legal-page="privacy">Privacy Policy</a>
+                    <a href="#" data-legal-page="terms">Terms &amp; Conditions</a>
+                    <a href="#" data-legal-page="disclaimer">Disclaimer</a>
+                </div>
+                <div>Contact Email: <a href="mailto:traderhelpline3028@gmail.com">traderhelpline3028@gmail.com</a></div>
+            </footer>
+        </main>
+    </div>
+
+    <div id="authShell" class="auth-shell hidden">
         <div class="auth-card">
             <h1 id="authTitle" class="auth-title">Welcome back</h1>
             <p id="authSubtitle" class="auth-subtitle">Sign in to continue into your local paper trading workspace.</p>
@@ -5144,6 +6240,8 @@
         const authResultError = document.getElementById("authResultError");
         const updateRecoveryPasswordButton = document.getElementById("updateRecoveryPasswordButton");
         const goToLoginButton = document.getElementById("goToLoginButton");
+        const landingShell = document.getElementById("landingShell");
+        const landingAuthButtons = Array.from(document.querySelectorAll("[data-auth-open]"));
         const authTitle = document.getElementById("authTitle");
         const authSubtitle = document.getElementById("authSubtitle");
         const signupUsernameGroup = document.getElementById("signupUsernameGroup");
@@ -7651,7 +8749,10 @@
         }
 
         function showAuthenticatedApp() {
+            document.body.classList.remove("landing-visible");
+            landingShell.classList.add("hidden");
             authShell.classList.add("hidden");
+            authResultShell.classList.add("hidden");
             appRoot.classList.remove("hidden-app");
             historyDrawer.classList.remove("hidden");
             renderCurrentUser();
@@ -7669,6 +8770,8 @@
         }
 
         function showAuthShell() {
+            document.body.classList.remove("landing-visible");
+            landingShell.classList.add("hidden");
             authResultShell.classList.add("hidden");
             authShell.classList.remove("hidden");
             appRoot.classList.add("hidden-app");
@@ -7677,6 +8780,18 @@
             setStatus("", false);
             closeTradeModal();
             setActivePage("dashboard", true);
+        }
+
+        function showLandingShell() {
+            document.body.classList.add("landing-visible");
+            landingShell.classList.remove("hidden");
+            authShell.classList.add("hidden");
+            authResultShell.classList.add("hidden");
+            appRoot.classList.add("hidden-app");
+            drawerBackdrop.classList.add("hidden");
+            setOverlay("", false);
+            setStatus("", false);
+            closeTradeModal();
         }
 
         function createSignal() {
@@ -8666,16 +9781,7 @@
         }
 
         function removeChartBranding() {
-            [chartContainer, rsiChartHost, volumeChartHost].forEach((host) => {
-                host?.querySelectorAll?.(
-                    'a[href*="tradingview"], a[href*="TradingView"], [title*="TradingView"], [aria-label*="TradingView"]'
-                )?.forEach((node) => {
-                    node.style.display = "none";
-                    node.style.opacity = "0";
-                    node.style.pointerEvents = "none";
-                    node.style.visibility = "hidden";
-                });
-            });
+            // Intentionally empty.
         }
 
         function restoreChartViewportLayout() {
@@ -12681,7 +13787,7 @@
                     background: { color: "#0b1220" },
                     textColor: "#e2e8f0",
                     fontFamily: "Segoe UI, Tahoma, sans-serif",
-                    attributionLogo: false,
+                    attributionLogo: true,
                     panes: {
                         enableResize: false,
                         separatorColor: "transparent",
@@ -12978,6 +14084,8 @@
         }
 
         function showAuthResultPage({ title, message, mode = "message", isError = false }) {
+            document.body.classList.remove("landing-visible");
+            landingShell.classList.add("hidden");
             authShell.classList.add("hidden");
             appRoot.classList.add("hidden-app");
             authResultShell.classList.remove("hidden");
@@ -13417,7 +14525,11 @@
             clearAuthInputs();
             renderCurrentUser();
             renderWatchlist();
-            showAuthShell();
+            if (finalMessage) {
+                showAuthShell();
+            } else {
+                showLandingShell();
+            }
             if (finalMessage) {
                 showAuthMessage(finalMessage);
             }
@@ -13738,6 +14850,14 @@
             if (activeTradesButton) {
                 activeTradesButton.addEventListener("click", openActiveTradesModal);
             }
+            landingAuthButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    const requestedMode = button.dataset.authOpen === "signup" ? "signup" : "login";
+                    clearAuthInputs();
+                    setAuthMode(requestedMode);
+                    showAuthShell();
+                });
+            });
             authSwitchButton.addEventListener("click", () => {
                 setAuthMode(authMode === "login" ? "signup" : "login");
             });
@@ -13746,7 +14866,10 @@
             });
             resendVerificationButton.addEventListener("click", resendVerificationOtp);
             authLegalLinks().forEach((button) => {
-                button.addEventListener("click", () => openLegalPage(button.dataset.legalPage));
+                button.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    openLegalPage(button.dataset.legalPage);
+                });
             });
             [termsAcceptedInput, privacyAcceptedInput].forEach((input) => {
                 input.addEventListener("change", updateSignupConsentState);
@@ -14928,7 +16051,7 @@
 
             const client = await ensureSupabaseClient();
             if (!client) {
-                showAuthShell();
+                showLandingShell();
                 return;
             }
 
@@ -14971,7 +16094,7 @@
             }
 
             clearLegacyAuthStorage();
-            showAuthShell();
+            showLandingShell();
         }
 
         bootstrap();
