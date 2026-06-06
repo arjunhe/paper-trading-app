@@ -75,7 +75,10 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            padding: 24px;
+            min-height: 100%;
+            padding: max(20px, env(safe-area-inset-top)) 24px max(20px, env(safe-area-inset-bottom));
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .auth-shell.hidden {
@@ -84,12 +87,15 @@
 
         .auth-card {
             width: min(460px, 100%);
+            max-height: 90vh;
             padding: 22px;
             border: 1px solid var(--border);
             border-radius: 22px;
             background: rgba(12, 19, 33, 0.88);
             box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(14px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
         .auth-title {
@@ -2396,28 +2402,98 @@
 
         #drawPanel {
             position: absolute;
-            top: 40px;
+            top: 6px;
             right: 10px;
             background: #0f172a;
             border: 1px solid #334155;
-            padding: 8px;
+            padding: 0;
             border-radius: 8px;
             z-index: 1000;
+            width: min(260px, calc(100vw - 24px));
+            max-height: min(58vh, calc(100% - 12px), 420px);
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            overflow: hidden;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.35);
         }
 
-        #drawPanel div {
+        .draw-panel-header,
+        .draw-panel-footer {
+            position: sticky;
+            z-index: 2;
+            background: rgba(15, 23, 42, 0.98);
+            border-color: rgba(51, 65, 85, 0.9);
+        }
+
+        .draw-panel-header {
+            top: 0;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.9);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .draw-panel-close {
+            width: 28px !important;
+            min-width: 28px;
+            height: 28px !important;
+            padding: 0 !important;
+            border-radius: 8px !important;
+            border: 1px solid rgba(148, 163, 184, 0.35) !important;
+            background: rgba(30, 41, 59, 0.95) !important;
+            color: #e5e7eb !important;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .draw-panel-close:hover {
+            background: rgba(239, 68, 68, 0.18) !important;
+            border-color: rgba(248, 113, 113, 0.55) !important;
+            color: #fecaca !important;
+        }
+
+        .draw-panel-body {
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding: 6px;
+            scrollbar-width: thin;
+        }
+
+        .draw-panel-footer {
+            bottom: 0;
+            display: grid;
+            gap: 8px;
+            padding: 8px;
+            border-top: 1px solid rgba(51, 65, 85, 0.9);
+        }
+
+        #drawPanel div[data-tool],
+        #clearDrawings {
             padding: 6px 10px;
             cursor: pointer;
+            border-radius: 6px;
         }
 
-        #drawPanel div:hover {
+        #drawPanel div[data-tool]:hover,
+        #clearDrawings:hover {
             background: #1e293b;
         }
 
         #drawPanel input,
+        #drawPanel select,
         #drawPanel button {
             width: 100%;
-            margin-top: 8px;
             height: 34px;
             border-radius: 6px;
             border: 1px solid #334155;
@@ -2425,7 +2501,8 @@
             color: #fff;
         }
 
-        #drawPanel input {
+        #drawPanel input,
+        #drawPanel select {
             padding: 4px 6px;
         }
 
@@ -2454,6 +2531,11 @@
             border-color: rgba(255, 255, 255, 0.9);
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
+        }
+
+        #app.trade-workspace-fullscreen #drawPanel {
+            top: 14px;
+            max-height: min(64vh, calc(var(--fullscreen-viewport-height, 100vh) - 64px));
         }
 
         #rsiSettings {
@@ -3156,7 +3238,7 @@
             }
 
             .auth-shell {
-                padding: 12px;
+                padding: max(20px, env(safe-area-inset-top)) 12px max(20px, env(safe-area-inset-bottom));
             }
 
             .auth-card {
@@ -3541,6 +3623,13 @@
             #mainChart {
                 height: 61vh;
                 min-height: 61vh;
+            }
+
+            #drawPanel {
+                top: 6px;
+                right: 8px;
+                width: min(260px, calc(100vw - 16px));
+                max-height: min(58vh, calc(100% - 12px), calc(100vh - 72px));
             }
 
             /* Mobile trade action buttons (Buy/Sell floating below chart) */
@@ -4479,6 +4568,16 @@
                     <input id="confirmPasswordInput" class="form-input" type="password" autocomplete="new-password"
                         placeholder="Confirm your password">
                 </div>
+                <div id="signupConsentGroup" class="form-group hidden-field">
+                    <label class="remember-row">
+                        <input id="termsAcceptedInput" type="checkbox">
+                        <span>I agree to the <button class="auth-switch" type="button" data-legal-page="terms">Terms &amp; Conditions</button></span>
+                    </label>
+                    <label class="remember-row">
+                        <input id="privacyAcceptedInput" type="checkbox">
+                        <span>I agree to the <button class="auth-switch" type="button" data-legal-page="privacy">Privacy Policy</button></span>
+                    </label>
+                </div>
                 <div class="remember-row">
                     <input id="rememberMeInput" type="checkbox" checked>
                     <label for="rememberMeInput">Remember me on this device</label>
@@ -4631,26 +4730,47 @@
                             </div>
                         </div>
                         <div id="drawPanel" class="hidden">
-                            <div data-tool="trend">Trend Line</div>
-                            <div data-tool="ray">Ray</div>
-                            <div data-tool="horizontal">Horizontal Line</div>
-                            <div id="clearDrawings">Clear All</div>
-                            <input type="color" id="drawColor" value="#facc15">
-                            <div class="draw-color-presets" id="drawColorPresets">
-                                <button class="draw-color-chip" data-color="#ffffff" style="background:#ffffff"
-                                    type="button" aria-label="White"></button>
-                                <button class="draw-color-chip" data-color="#ef4444" style="background:#ef4444"
-                                    type="button" aria-label="Red"></button>
-                                <button class="draw-color-chip" data-color="#22c55e" style="background:#22c55e"
-                                    type="button" aria-label="Green"></button>
-                                <button class="draw-color-chip" data-color="#3b82f6" style="background:#3b82f6"
-                                    type="button" aria-label="Blue"></button>
-                                <button class="draw-color-chip active" data-color="#facc15" style="background:#facc15"
-                                    type="button" aria-label="Yellow"></button>
-                                <button class="draw-color-chip" data-color="#a855f7" style="background:#a855f7"
-                                    type="button" aria-label="Purple"></button>
+                            <div class="draw-panel-header">
+                                <span>Draw Tools</span>
+                                <button id="closeDrawPanelButton" class="draw-panel-close" type="button"
+                                    aria-label="Close draw tools">&times;</button>
                             </div>
-                            <button id="deleteLine" type="button">Delete Selected</button>
+                            <div class="draw-panel-body">
+                                <div data-tool="trend">Trend Line</div>
+                                <div data-tool="ray">Ray</div>
+                                <div data-tool="horizontal">Horizontal Line</div>
+                                <div data-tool="rectangle">Rectangle</div>
+                                <div data-tool="horizontalRay">Horizontal Ray</div>
+                                <div data-tool="vertical">Vertical Line</div>
+                                <div data-tool="fib">Fibonacci Retracement</div>
+                                <div data-tool="longPosition">Long Position</div>
+                                <div data-tool="shortPosition">Short Position</div>
+                            </div>
+                            <div class="draw-panel-footer">
+                                <div id="clearDrawings">Clear All</div>
+                                <input type="color" id="drawColor" value="#facc15">
+                                <div class="draw-color-presets" id="drawColorPresets">
+                                    <button class="draw-color-chip" data-color="#ffffff" style="background:#ffffff"
+                                        type="button" aria-label="White"></button>
+                                    <button class="draw-color-chip" data-color="#ef4444" style="background:#ef4444"
+                                        type="button" aria-label="Red"></button>
+                                    <button class="draw-color-chip" data-color="#22c55e" style="background:#22c55e"
+                                        type="button" aria-label="Green"></button>
+                                    <button class="draw-color-chip" data-color="#3b82f6" style="background:#3b82f6"
+                                        type="button" aria-label="Blue"></button>
+                                    <button class="draw-color-chip active" data-color="#facc15" style="background:#facc15"
+                                        type="button" aria-label="Yellow"></button>
+                                    <button class="draw-color-chip" data-color="#a855f7" style="background:#a855f7"
+                                        type="button" aria-label="Purple"></button>
+                                </div>
+                                <select id="drawLineWidth" aria-label="Line width">
+                                    <option value="1">Line Width 1</option>
+                                    <option value="2" selected>Line Width 2</option>
+                                    <option value="3">Line Width 3</option>
+                                    <option value="4">Line Width 4</option>
+                                </select>
+                                <button id="deleteLine" type="button">Delete Selected</button>
+                            </div>
                         </div>
                         <div id="chart">
                             <canvas id="drawCanvas"></canvas>
@@ -5030,6 +5150,9 @@
         const signupUsernameInput = document.getElementById("signupUsernameInput");
         const signupMobileGroup = document.getElementById("signupMobileGroup");
         const signupMobileInput = document.getElementById("signupMobileInput");
+        const signupConsentGroup = document.getElementById("signupConsentGroup");
+        const termsAcceptedInput = document.getElementById("termsAcceptedInput");
+        const privacyAcceptedInput = document.getElementById("privacyAcceptedInput");
         const authEmailInput = document.getElementById("authEmailInput");
         const authPasswordInput = document.getElementById("authPasswordInput");
         const confirmPasswordGroup = document.getElementById("confirmPasswordGroup");
@@ -5046,7 +5169,7 @@
         const legalModalTitle = document.getElementById("legalModalTitle");
         const legalModalContent = document.getElementById("legalModalContent");
         const closeLegalModalButton = document.getElementById("closeLegalModalButton");
-        const authLegalLinks = Array.from(document.querySelectorAll("[data-legal-page]"));
+        const authLegalLinks = () => Array.from(document.querySelectorAll("[data-legal-page]"));
         const chartContainer = document.getElementById("chart");
         const overlay = document.getElementById("overlay");
         const statusRow = document.getElementById("statusRow");
@@ -5063,6 +5186,7 @@
         const fullscreenChartButton = document.getElementById("fullscreenChartButton");
         const drawingDeleteButton = document.getElementById("drawingDeleteButton");
         const drawPanel = document.getElementById("drawPanel");
+        const closeDrawPanelButton = document.getElementById("closeDrawPanelButton");
         const clearDrawingsButton = document.getElementById("clearDrawings");
         const drawColorInput = document.getElementById("drawColor");
         const drawColorPresetButtons = Array.from(document.querySelectorAll(".draw-color-chip"));
@@ -6114,6 +6238,10 @@
             return authUser;
         }
 
+        function getSignupAcceptanceTimestamp() {
+            return new Date().toISOString();
+        }
+
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
         }
@@ -6264,6 +6392,8 @@
                     phone_number: currentUser.phoneNumber || null,
                     email_verified: Boolean(currentUser.emailVerified),
                     phone_verified: Boolean(currentUser.phoneVerified),
+                    terms_accepted_at: currentUser.termsAcceptedAt || null,
+                    privacy_accepted_at: currentUser.privacyAcceptedAt || null,
                 };
                 const insert = await client
                     .from("users")
@@ -7015,6 +7145,8 @@
         function clearAuthInputs() {
             signupUsernameInput.value = "";
             signupMobileInput.value = "";
+            termsAcceptedInput.checked = false;
+            privacyAcceptedInput.checked = false;
             authEmailInput.value = "";
             authPasswordInput.value = "";
             confirmPasswordInput.value = "";
@@ -7050,6 +7182,7 @@
             signupUsernameGroup.classList.toggle("hidden-field", !isSignup);
             signupMobileGroup.classList.toggle("hidden-field", !isSignup);
             confirmPasswordGroup.classList.toggle("hidden-field", !isSignup);
+            signupConsentGroup.classList.toggle("hidden-field", !isSignup);
             forgotPasswordGroup.classList.toggle("hidden-field", !isForgot);
             authPasswordInput.closest(".form-group").classList.toggle("hidden-field", isForgot);
             rememberMeInput.closest(".remember-row").classList.toggle("hidden-field", isForgot);
@@ -7057,6 +7190,15 @@
             resendVerificationButton.classList.toggle("hidden-field", !pendingVerificationEmail || isForgot);
             authPasswordInput.setAttribute("autocomplete", isSignup ? "new-password" : "current-password");
             showAuthMessage("");
+            updateSignupConsentState();
+        }
+
+        function updateSignupConsentState() {
+            if (authMode !== "signup") {
+                return;
+            }
+
+            authSubmitButton.disabled = !(termsAcceptedInput.checked && privacyAcceptedInput.checked);
         }
 
         function renderCurrentUser() {
@@ -8077,6 +8219,25 @@
                 return null;
             }
 
+            if (["rectangle", "fib", "longPosition", "shortPosition"].includes(line.type)) {
+                const bounds = getDrawingBounds(line);
+                return bounds
+                    ? { x: (bounds.left + bounds.right) / 2, y: (bounds.top + bounds.bottom) / 2 }
+                    : null;
+            }
+
+            if (line.type === "vertical") {
+                const x = timeToChartCoordinate(line.time);
+                return x === null ? null : { x, y: Math.max(drawCanvas.height / 2, 24) };
+            }
+
+            if (line.type === "horizontalRay") {
+                const p1 = getDrawingPointCoordinate(line.p1);
+                return p1
+                    ? { x: Math.min(Math.max((p1.x + drawCanvas.width) / 2, 24), drawCanvas.width - 24), y: p1.y }
+                    : null;
+            }
+
             if (line.type === "horizontal") {
                 const y = series.priceToCoordinate(line.price);
                 const rightEdge = chart.timeScale().width();
@@ -8389,6 +8550,11 @@
                 const dx = x - handle.x;
                 const dy = y - handle.y;
                 return Math.sqrt(dx * dx + dy * dy) <= 12 ? "price" : null;
+            }
+
+            if (line.type === "vertical") {
+                const xLine = timeToChartCoordinate(line.time);
+                return xLine !== null && Math.abs(x - xLine) <= 12 ? "time" : null;
             }
 
             const p1 = getTrendCoordinate(line.p1);
@@ -8753,6 +8919,28 @@
                 };
             }
 
+            if (drawing.type === "vertical" && Number.isFinite(drawing.time)) {
+                return {
+                    type: "vertical",
+                    time: drawing.time,
+                    color: typeof drawing.color === "string" ? drawing.color : "#facc15",
+                };
+            }
+
+            if (
+                ["rectangle", "horizontalRay", "fib", "longPosition", "shortPosition"].includes(drawing.type)
+                && isValidTrendPoint(drawing.p1)
+                && isValidTrendPoint(drawing.p2)
+            ) {
+                return {
+                    type: drawing.type,
+                    p1: { time: drawing.p1.time, price: drawing.p1.price },
+                    p2: { time: drawing.p2.time, price: drawing.p2.price },
+                    targetPrice: Number.isFinite(drawing.targetPrice) ? drawing.targetPrice : null,
+                    color: typeof drawing.color === "string" ? drawing.color : "#facc15",
+                };
+            }
+
             return null;
         }
 
@@ -8771,6 +8959,72 @@
             drawContext.fill();
             drawContext.stroke();
             drawContext.restore();
+        }
+
+        function getDrawingPointCoordinate(point) {
+            return getTrendCoordinate(point);
+        }
+
+        function getDrawingBounds(drawing) {
+            const p1 = getDrawingPointCoordinate(drawing.p1);
+            const p2 = getDrawingPointCoordinate(drawing.p2);
+            if (!p1 || !p2) {
+                return null;
+            }
+
+            return {
+                p1,
+                p2,
+                left: Math.min(p1.x, p2.x),
+                right: Math.max(p1.x, p2.x),
+                top: Math.min(p1.y, p2.y),
+                bottom: Math.max(p1.y, p2.y),
+            };
+        }
+
+        function drawTextTag(text, x, y, color = "#facc15") {
+            drawContext.save();
+            drawContext.shadowBlur = 0;
+            drawContext.font = "12px Segoe UI";
+            drawContext.textBaseline = "middle";
+            const width = Math.min(Math.max(drawContext.measureText(text).width + 12, 44), 150);
+            const left = Math.min(Math.max(x, 4), drawCanvas.width - width - 4);
+            const top = Math.min(Math.max(y - 11, 4), drawCanvas.height - 24);
+            drawContext.fillStyle = "rgba(15, 23, 42, 0.92)";
+            drawContext.fillRect(left, top, width, 22);
+            drawContext.strokeStyle = color;
+            drawContext.strokeRect(left, top, width, 22);
+            drawContext.fillStyle = color;
+            drawContext.fillText(text, left + 6, top + 11);
+            drawContext.restore();
+        }
+
+        function getPositionToolLevels(drawing) {
+            const entry = Number(drawing.p1?.price);
+            const stop = Number(drawing.p2?.price);
+            if (!Number.isFinite(entry) || !Number.isFinite(stop)) {
+                return null;
+            }
+
+            const risk = Math.abs(entry - stop);
+            if (!risk) {
+                return null;
+            }
+
+            const isLong = drawing.type === "longPosition";
+            const fallbackTarget = isLong ? entry + risk * 2 : entry - risk * 2;
+            const target = Number.isFinite(drawing.targetPrice) ? drawing.targetPrice : fallbackTarget;
+            const reward = Math.abs(target - entry);
+
+            return {
+                entry,
+                stop,
+                target,
+                risk,
+                reward,
+                rr: risk ? reward / risk : 0,
+                isLong,
+            };
         }
 
         function scheduleDrawingRedraw() {
@@ -8976,6 +9230,50 @@
                 return yLine !== null && Math.abs(y - yLine) < 16;
             }
 
+            if (line.type === "vertical") {
+                const xLine = timeToChartCoordinate(line.time);
+                return xLine !== null && Math.abs(x - xLine) < 16;
+            }
+
+            if (line.type === "horizontalRay") {
+                const p1 = getDrawingPointCoordinate(line.p1);
+                if (!p1) {
+                    return false;
+                }
+                return x >= p1.x - 16 && Math.abs(y - p1.y) < 16;
+            }
+
+            if (line.type === "rectangle") {
+                const bounds = getDrawingBounds(line);
+                if (!bounds) {
+                    return false;
+                }
+                const nearVertical = Math.abs(x - bounds.left) < 14 || Math.abs(x - bounds.right) < 14;
+                const nearHorizontal = Math.abs(y - bounds.top) < 14 || Math.abs(y - bounds.bottom) < 14;
+                const insideX = x >= bounds.left - 8 && x <= bounds.right + 8;
+                const insideY = y >= bounds.top - 8 && y <= bounds.bottom + 8;
+                return (nearVertical && insideY) || (nearHorizontal && insideX) || (insideX && insideY);
+            }
+
+            if (line.type === "fib") {
+                const bounds = getDrawingBounds(line);
+                if (!bounds) {
+                    return false;
+                }
+                const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                return x >= bounds.left - 14
+                    && x <= bounds.right + 14
+                    && levels.some((level) => Math.abs(y - (bounds.p1.y + (bounds.p2.y - bounds.p1.y) * level)) < 12);
+            }
+
+            if (line.type === "longPosition" || line.type === "shortPosition") {
+                const bounds = getDrawingBounds(line);
+                if (!bounds) {
+                    return false;
+                }
+                return x >= bounds.left - 12 && x <= bounds.right + 12 && y >= bounds.top - 12 && y <= bounds.bottom + 12;
+            }
+
             const x1 = timeToChartCoordinate(line.p1.time);
             const y1 = series.priceToCoordinate(line.p1.price);
             const x2 = timeToChartCoordinate(line.p2.time);
@@ -9122,6 +9420,137 @@
                     if (drawing === selectedLine) {
                         drawSelectionHandle(p1.x, p1.y, drawing.color || "#facc15");
                         drawSelectionHandle(p2.x, p2.y, drawing.color || "#facc15");
+                    }
+                    drawContext.restore();
+                    return;
+                }
+
+                if (drawing.type === "horizontalRay") {
+                    const p1 = getDrawingPointCoordinate(drawing.p1);
+                    if (!p1) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    drawContext.beginPath();
+                    drawContext.moveTo(p1.x, p1.y);
+                    drawContext.lineTo(rightEdge, p1.y);
+                    drawContext.stroke();
+                    drawTextTag(formatPrice(drawing.p1.price), Math.max(rightEdge - 80, p1.x + 8), p1.y, drawing.color || "#facc15");
+                    if (drawing === selectedLine) {
+                        drawSelectionHandle(p1.x, p1.y, drawing.color || "#facc15");
+                    }
+                    drawContext.restore();
+                    return;
+                }
+
+                if (drawing.type === "vertical") {
+                    const xLine = timeToChartCoordinate(drawing.time);
+                    if (xLine === null) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    drawContext.beginPath();
+                    drawContext.moveTo(xLine, 0);
+                    drawContext.lineTo(xLine, drawCanvas.height);
+                    drawContext.stroke();
+                    if (drawing === selectedLine) {
+                        drawSelectionHandle(xLine, Math.max(drawCanvas.height / 2, 24), drawing.color || "#facc15");
+                    }
+                    drawContext.restore();
+                    return;
+                }
+
+                if (drawing.type === "rectangle") {
+                    const bounds = getDrawingBounds(drawing);
+                    if (!bounds) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    drawContext.globalAlpha = 0.14;
+                    drawContext.fillStyle = drawing.color || "#facc15";
+                    drawContext.fillRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top);
+                    drawContext.globalAlpha = 1;
+                    drawContext.strokeRect(bounds.left, bounds.top, bounds.right - bounds.left, bounds.bottom - bounds.top);
+                    if (drawing === selectedLine) {
+                        drawSelectionHandle(bounds.p1.x, bounds.p1.y, drawing.color || "#facc15");
+                        drawSelectionHandle(bounds.p2.x, bounds.p2.y, drawing.color || "#facc15");
+                    }
+                    drawContext.restore();
+                    return;
+                }
+
+                if (drawing.type === "fib") {
+                    const bounds = getDrawingBounds(drawing);
+                    if (!bounds) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                    drawContext.shadowBlur = 0;
+                    drawContext.font = "12px Segoe UI";
+                    drawContext.textBaseline = "middle";
+                    levels.forEach((level) => {
+                        const y = bounds.p1.y + (bounds.p2.y - bounds.p1.y) * level;
+                        const price = drawing.p1.price + (drawing.p2.price - drawing.p1.price) * level;
+                        drawContext.beginPath();
+                        drawContext.moveTo(bounds.left, y);
+                        drawContext.lineTo(bounds.right, y);
+                        drawContext.stroke();
+                        drawContext.fillStyle = drawing === selectedLine ? "#ffffff" : (drawing.color || "#facc15");
+                        drawContext.fillText(`${level}  ${formatPrice(price)}`, bounds.left + 6, y - 7);
+                    });
+                    if (drawing === selectedLine) {
+                        drawSelectionHandle(bounds.p1.x, bounds.p1.y, drawing.color || "#facc15");
+                        drawSelectionHandle(bounds.p2.x, bounds.p2.y, drawing.color || "#facc15");
+                    }
+                    drawContext.restore();
+                    return;
+                }
+
+                if (drawing.type === "longPosition" || drawing.type === "shortPosition") {
+                    const bounds = getDrawingBounds(drawing);
+                    const levels = getPositionToolLevels(drawing);
+                    if (!bounds || !levels) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    const entryY = series.priceToCoordinate(levels.entry);
+                    const stopY = series.priceToCoordinate(levels.stop);
+                    const targetY = series.priceToCoordinate(levels.target);
+                    if (entryY === null || stopY === null || targetY === null) {
+                        drawContext.restore();
+                        return;
+                    }
+
+                    const left = bounds.left;
+                    const width = Math.max(bounds.right - bounds.left, 30);
+                    drawContext.shadowBlur = 0;
+                    drawContext.fillStyle = "rgba(34, 197, 94, 0.18)";
+                    drawContext.fillRect(left, Math.min(entryY, targetY), width, Math.abs(targetY - entryY));
+                    drawContext.fillStyle = "rgba(239, 68, 68, 0.18)";
+                    drawContext.fillRect(left, Math.min(entryY, stopY), width, Math.abs(stopY - entryY));
+                    drawContext.strokeStyle = drawing === selectedLine ? "#ffffff" : (drawing.color || "#facc15");
+                    drawContext.strokeRect(left, Math.min(targetY, stopY), width, Math.abs(stopY - targetY));
+                    [
+                        ["Entry", entryY],
+                        ["Stop", stopY],
+                        ["Target", targetY],
+                    ].forEach(([label, yValue]) => {
+                        drawContext.beginPath();
+                        drawContext.moveTo(left, yValue);
+                        drawContext.lineTo(left + width, yValue);
+                        drawContext.stroke();
+                        drawTextTag(label, left + width + 6, yValue, drawing.color || "#facc15");
+                    });
+                    drawTextTag(`R:R ${levels.rr.toFixed(2)}`, left + 8, Math.min(targetY, stopY) + 16, drawing.color || "#facc15");
+                    if (drawing === selectedLine) {
+                        drawSelectionHandle(bounds.p1.x, bounds.p1.y, drawing.color || "#facc15");
+                        drawSelectionHandle(bounds.p2.x, bounds.p2.y, drawing.color || "#facc15");
                     }
                     drawContext.restore();
                     return;
@@ -12468,6 +12897,7 @@
             } else {
                 authSubmitButton.textContent = authMode === "signup" ? "Create Account" : "Login";
             }
+            updateSignupConsentState();
         }
 
         function formatAuthErrorMessage(error, fallback = "Failed To Load Data") {
@@ -12786,6 +13216,12 @@
                 return;
             }
 
+            if (!termsAcceptedInput.checked || !privacyAcceptedInput.checked) {
+                showAuthMessage("You must accept the Terms & Conditions and Privacy Policy to create an account.");
+                updateSignupConsentState();
+                return;
+            }
+
             setAuthButtonBusy(true, "Creating Account...");
             try {
                 const client = await ensureSupabaseClient();
@@ -12859,12 +13295,15 @@
 
                 const authUser = signupResult.user || signupResult.session?.user || null;
                 if (authUser) {
+                    const acceptedAt = getSignupAcceptanceTimestamp();
                     currentUser = {
                         username,
                         email,
                         phoneNumber: mobileNumber,
                         emailVerified: Boolean(authUser.email_confirmed_at),
                         phoneVerified: false,
+                        termsAcceptedAt: acceptedAt,
+                        privacyAcceptedAt: acceptedAt,
                         memberSince: authUser.created_at || null,
                         authUserId: authUser.id,
                         dbUserId: null,
@@ -13306,8 +13745,11 @@
                 setAuthMode("forgot");
             });
             resendVerificationButton.addEventListener("click", resendVerificationOtp);
-            authLegalLinks.forEach((button) => {
+            authLegalLinks().forEach((button) => {
                 button.addEventListener("click", () => openLegalPage(button.dataset.legalPage));
+            });
+            [termsAcceptedInput, privacyAcceptedInput].forEach((input) => {
+                input.addEventListener("change", updateSignupConsentState);
             });
             closeLegalModalButton.addEventListener("click", closeLegalPage);
             goToLoginButton.addEventListener("click", goToLoginPage);
@@ -13438,6 +13880,13 @@
                     drawPanel.classList.toggle("hidden");
                 });
             };
+            if (closeDrawPanelButton) {
+                closeDrawPanelButton.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    drawPanel.classList.add("hidden");
+                });
+            }
             if (fullscreenChartButton) {
                 fullscreenChartButton.addEventListener("click", () => {
                     ensureTradePageReady(() => {
@@ -13839,6 +14288,66 @@
                         redrawDrawings();
                         setDrawingMode(null);
                     }
+                    return;
+                }
+
+                if (["rectangle", "fib", "longPosition", "shortPosition", "horizontalRay", "vertical"].includes(currentTool)) {
+                    const time = coordinateToChartTime(x);
+                    const price = series.coordinateToPrice(y);
+                    if (time === null || price === null) {
+                        return;
+                    }
+
+                    const defaultOffset = getTimeframeStepSeconds() * 8;
+                    const priceOffset = Math.max(Math.abs(price) * 0.02, 1);
+                    let drawing = null;
+
+                    if (currentTool === "vertical") {
+                        drawing = { type: "vertical", time, color: currentColor };
+                    } else if (currentTool === "horizontalRay") {
+                        drawing = {
+                            type: "horizontalRay",
+                            p1: { time, price },
+                            p2: { time: time + defaultOffset, price },
+                            color: currentColor,
+                        };
+                    } else if (currentTool === "longPosition") {
+                        drawing = {
+                            type: "longPosition",
+                            p1: { time, price },
+                            p2: { time: time + defaultOffset, price: price - priceOffset },
+                            targetPrice: price + priceOffset * 2,
+                            color: currentColor,
+                        };
+                    } else if (currentTool === "shortPosition") {
+                        drawing = {
+                            type: "shortPosition",
+                            p1: { time, price },
+                            p2: { time: time + defaultOffset, price: price + priceOffset },
+                            targetPrice: price - priceOffset * 2,
+                            color: currentColor,
+                        };
+                    } else {
+                        drawing = {
+                            type: currentTool,
+                            p1: { time, price },
+                            p2: { time: time + defaultOffset, price: price - priceOffset },
+                            color: currentColor,
+                        };
+                    }
+
+                    drawings.push(drawing);
+                    saveAppState();
+                    if (isTouchPrimaryLayout()) {
+                        setDrawingMode(null);
+                    } else {
+                        selectDrawing(drawing, true);
+                        selectedHandle = drawing.type === "vertical"
+                            ? "time"
+                            : (drawing.type === "horizontalRay" ? "p1" : "p2");
+                        redrawDrawings();
+                        setDrawingMode(null);
+                    }
                 }
             });
             drawCanvas.addEventListener("mousedown", (e) => {
@@ -13893,18 +14402,27 @@
                     return;
                 }
 
-                if ((selectedLine.type === "trend" || selectedLine.type === "ray") && (selectedHandle === "p1" || selectedHandle === "p2")) {
+                if (selectedLine.type === "vertical") {
+                    selectedLine.time = newTime;
+                    dragStart = { time: newTime, price: newPrice };
+                } else if (
+                    ["trend", "ray", "rectangle", "fib", "longPosition", "shortPosition", "horizontalRay"].includes(selectedLine.type)
+                    && (selectedHandle === "p1" || selectedHandle === "p2")
+                ) {
                     selectedLine[selectedHandle] = {
                         time: newTime,
                         price: newPrice,
                     };
-                } else if (selectedLine.type === "trend" || selectedLine.type === "ray") {
+                } else if (["trend", "ray", "rectangle", "fib", "longPosition", "shortPosition", "horizontalRay"].includes(selectedLine.type)) {
                     const dt = newTime - dragStart.time;
                     const dp = newPrice - dragStart.price;
                     selectedLine.p1.time += dt;
                     selectedLine.p1.price += dp;
                     selectedLine.p2.time += dt;
                     selectedLine.p2.price += dp;
+                    if (Number.isFinite(selectedLine.targetPrice)) {
+                        selectedLine.targetPrice += dp;
+                    }
                     dragStart = { time: newTime, price: newPrice };
                 } else if (selectedLine.type === "horizontal") {
                     selectedLine.price = newPrice;
@@ -13912,23 +14430,30 @@
                 }
 
                 redrawDrawings();
-                saveAppState();
                 e.preventDefault();
             });
             drawCanvas.addEventListener("mouseup", () => {
+                const shouldSaveDrawing = isDragging && selectedLine;
                 isDragging = false;
                 dragStart = null;
                 selectedHandle = null;
                 if (!currentTool) {
                     disableDrawingMode();
                 }
+                if (shouldSaveDrawing) {
+                    saveAppState();
+                }
             });
             drawCanvas.addEventListener("mouseleave", () => {
+                const shouldSaveDrawing = isDragging && selectedLine;
                 isDragging = false;
                 dragStart = null;
                 selectedHandle = null;
                 if (!currentTool) {
                     disableDrawingMode();
+                }
+                if (shouldSaveDrawing) {
+                    saveAppState();
                 }
             });
             symbolInput.addEventListener("input", () => {
