@@ -119,7 +119,7 @@ class ChartBridge(QObject):
             {
                 "symbol": self.symbol,
                 "interval": self.interval,
-                "limit": 500,
+                "limit": 1000,
             }
         )
         request = QNetworkRequest(QUrl(f"{BINANCE_REST_URL}?{params}"))
