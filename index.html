@@ -1854,6 +1854,52 @@
         }
 
         @media (min-width: 769px) {
+            #app.trade-workspace-fullscreen .trade-layout {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(300px, min(24vw, 360px));
+                align-items: stretch;
+                gap: 12px;
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            #app.trade-workspace-fullscreen .trade-side-stack {
+                position: relative;
+                z-index: 3;
+                width: auto;
+                max-width: 100%;
+                min-width: 0;
+                height: var(--fullscreen-content-height, 86vh);
+                max-height: var(--fullscreen-content-height, 86vh);
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+
+            #app.trade-workspace-fullscreen .trade-layout .chart-column {
+                min-width: 0;
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
+            }
+
+            body:not(.pyqt-desktop) #app.trade-workspace-fullscreen .trade-modal {
+                position: absolute;
+                inset: 0;
+                align-items: flex-start;
+                justify-content: center;
+                padding: 28px 18px 18px;
+                overflow-y: auto;
+                z-index: 1000006 !important;
+            }
+
+            body:not(.pyqt-desktop) #app.trade-workspace-fullscreen .trade-modal-card {
+                width: min(420px, calc(100vw - 36px));
+                max-height: calc(var(--fullscreen-viewport-height, 100vh) - 56px);
+                margin: 0 auto;
+                overflow-y: auto;
+                z-index: 1000007;
+            }
 
             #app.trade-workspace-fullscreen .app-pages,
             #app.trade-workspace-fullscreen .chart-column,
@@ -1972,6 +2018,24 @@
             overflow-x: hidden;
             padding-right: 0;
             margin-right: 28px;
+        }
+
+        body.pyqt-desktop #app.trade-workspace-fullscreen .trade-modal {
+            position: absolute;
+            inset: 0;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 28px 18px 18px;
+            overflow-y: auto;
+            z-index: 1000006 !important;
+        }
+
+        body.pyqt-desktop #app.trade-workspace-fullscreen .trade-modal-card {
+            width: min(420px, calc(100vw - 36px));
+            max-height: calc(var(--fullscreen-viewport-height, 100vh) - 56px);
+            margin: 0 auto;
+            overflow-y: auto;
+            z-index: 1000007;
         }
 
         body.pyqt-desktop #app.trade-workspace-fullscreen .trade-layout {
@@ -4391,14 +4455,19 @@
             <p id="authSubtitle" class="auth-subtitle">Sign in to continue into your local paper trading workspace.</p>
             <div class="auth-form">
                 <div id="signupUsernameGroup" class="form-group hidden-field">
-                    <label class="form-label" for="signupUsernameInput">Username</label>
+                    <label class="form-label" for="signupUsernameInput">Full Name</label>
                     <input id="signupUsernameInput" class="form-input" type="text" autocomplete="username"
-                        placeholder="Choose a username">
+                        placeholder="Enter your full name">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="authEmailInput">Email</label>
                     <input id="authEmailInput" class="form-input" type="email" autocomplete="email"
                         placeholder="Enter your email">
+                </div>
+                <div id="signupMobileGroup" class="form-group hidden-field">
+                    <label class="form-label" for="signupMobileInput">Mobile Number</label>
+                    <input id="signupMobileInput" class="form-input" type="tel" autocomplete="tel"
+                        inputmode="numeric" pattern="[0-9]*" maxlength="15" placeholder="Enter mobile number">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="authPasswordInput">Password</label>
@@ -4868,6 +4937,9 @@
         let bollingerBands = null;
         let currentData = [];
         let isLoadingData = false;
+        let isLoadingOlderCandles = false;
+        let hasMoreHistoricalCandles = true;
+        let historicalPaginationMaxNoticeShown = false;
         let activeSymbol = "BTCUSDT";
         let activeTimeframe = "5m";
         let browserSocket = null;
@@ -4895,6 +4967,7 @@
         let profileMemberSinceValue = null;
         let profileAccountTypeValue = null;
         let profileEmailStatusValue = null;
+        let profilePhoneValue = null;
         let profileCurrentDeviceValue = null;
         let profileLastDeviceValue = null;
         let profileDeviceList = null;
@@ -4955,6 +5028,8 @@
         const authSubtitle = document.getElementById("authSubtitle");
         const signupUsernameGroup = document.getElementById("signupUsernameGroup");
         const signupUsernameInput = document.getElementById("signupUsernameInput");
+        const signupMobileGroup = document.getElementById("signupMobileGroup");
+        const signupMobileInput = document.getElementById("signupMobileInput");
         const authEmailInput = document.getElementById("authEmailInput");
         const authPasswordInput = document.getElementById("authPasswordInput");
         const confirmPasswordGroup = document.getElementById("confirmPasswordGroup");
@@ -5215,6 +5290,10 @@
         const BINANCE_EXCHANGE_INFO_URL = "https://api.binance.com/api/v3/exchangeInfo";
         const BINANCE_TICKER_24H_URL = "https://api.binance.com/api/v3/ticker/24hr";
         const VALID_INTERVALS = new Set(["1m", "5m", "15m", "1h"]);
+        const INITIAL_CANDLE_LIMIT = 1000;
+        const HISTORY_CANDLE_CHUNK_SIZE = 1000;
+        const MAX_STORED_CANDLES = 10000;
+        const HISTORY_LEFT_EDGE_THRESHOLD = 80;
         const SUPABASE_URL = "https://vsdszhobgrlawxskmdat.supabase.co";
         const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XnHrFq_xoNT5TNUA-LAD8g_9HJOpbEj";
         const indicators = {
@@ -5566,6 +5645,7 @@
                                 <div class="profile-item"><div class="profile-item-label">Username</div><div class="profile-item-value" data-profile-field="username">--</div></div>
                                 <div class="profile-item"><div class="profile-item-label">Email Address</div><div class="profile-item-value" data-profile-field="email">--</div></div>
                                 <div class="profile-item"><div class="profile-item-label">Email Verification</div><div class="profile-item-value" data-profile-field="email-status">--</div></div>
+                                <div class="profile-item"><div class="profile-item-label">Phone Number</div><div class="profile-item-value" data-profile-field="phone">--</div></div>
                                 <div class="profile-item"><div class="profile-item-label">Member Since</div><div class="profile-item-value" data-profile-field="member-since">--</div></div>
                                 <div class="profile-item"><div class="profile-item-label">Account Type</div><div class="profile-item-value" data-profile-field="account-type">Free</div></div>
                             </div>
@@ -5636,6 +5716,7 @@
             profileUsernameValue = profileCard.querySelector('[data-profile-field="username"]');
             profileEmailValue = profileCard.querySelector('[data-profile-field="email"]');
             profileEmailStatusValue = profileCard.querySelector('[data-profile-field="email-status"]');
+            profilePhoneValue = profileCard.querySelector('[data-profile-field="phone"]');
             profilePlanValue = profileCard.querySelector('[data-profile-field="account-type"]');
             profileMemberSinceValue = profileCard.querySelector('[data-profile-field="member-since"]');
             profileAccountTypeValue = profilePlanValue;
@@ -6008,6 +6089,31 @@
             localStorage.removeItem("paperTradingSession");
         }
 
+        function syncCurrentUserFromAuthSession(client = supabaseClient) {
+            if (!currentUser || !client?.auth) {
+                return null;
+            }
+
+            const session = typeof client.auth.session === "function" ? client.auth.session() : null;
+            const authUser = typeof client.auth.user === "function" ? client.auth.user() : session?.user || null;
+
+            if (!authUser) {
+                return null;
+            }
+
+            currentUser = {
+                ...currentUser,
+                email: authUser.email || currentUser.email,
+                phoneNumber: currentUser.phoneNumber || authUser.phone || authUser.user_metadata?.phone_number || "",
+                emailVerified: Boolean(authUser.email_confirmed_at),
+                phoneVerified: Boolean(authUser.phone_confirmed_at ?? currentUser.phoneVerified),
+                memberSince: authUser.created_at || currentUser.memberSince || null,
+                authUserId: authUser.id || currentUser.authUserId || null,
+            };
+
+            return authUser;
+        }
+
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
         }
@@ -6129,6 +6235,7 @@
             if (!client) {
                 return null;
             }
+            syncCurrentUserFromAuthSession(client);
             const normalizedEmail = currentUser.email.toLowerCase();
             const lookup = currentUser.authUserId
                 ? await client
@@ -6194,7 +6301,7 @@
                 username: userRecord.username || currentUser.username,
                 email: userRecord.email || currentUser.email,
                 phoneNumber: userRecord.phone_number || currentUser.phoneNumber || "",
-                emailVerified: Boolean(userRecord.email_verified ?? currentUser.emailVerified),
+                emailVerified: Boolean(currentUser.emailVerified),
                 phoneVerified: Boolean(userRecord.phone_verified ?? currentUser.phoneVerified),
                 authUserId: currentUser.authUserId || userRecord.id,
                 dbUserId: userRecord.id,
@@ -6398,6 +6505,8 @@
 
                 const row = Array.isArray(response.data) ? response.data[0] : response.data;
                 if (!row) {
+                    resetUserSavedObjects();
+                    saveAppState(false);
                     return;
                 }
 
@@ -6905,6 +7014,7 @@
 
         function clearAuthInputs() {
             signupUsernameInput.value = "";
+            signupMobileInput.value = "";
             authEmailInput.value = "";
             authPasswordInput.value = "";
             confirmPasswordInput.value = "";
@@ -6938,6 +7048,7 @@
             authFooterText.textContent = isForgot || isSignup ? "Already have an account?" : "Need an account?";
             authSwitchButton.textContent = isForgot || isSignup ? "Login instead" : "Create one";
             signupUsernameGroup.classList.toggle("hidden-field", !isSignup);
+            signupMobileGroup.classList.toggle("hidden-field", !isSignup);
             confirmPasswordGroup.classList.toggle("hidden-field", !isSignup);
             forgotPasswordGroup.classList.toggle("hidden-field", !isForgot);
             authPasswordInput.closest(".form-group").classList.toggle("hidden-field", isForgot);
@@ -6949,6 +7060,7 @@
         }
 
         function renderCurrentUser() {
+            syncCurrentUserFromAuthSession();
             currentUserChip.textContent = currentUser?.username || currentUser?.email || "Guest";
             if (profileAvatarValue) {
                 profileAvatarValue.textContent = (currentUser?.username || currentUser?.email || "T").trim().charAt(0).toUpperCase();
@@ -6963,6 +7075,12 @@
                 profileEmailStatusValue.textContent = currentUser?.emailVerified ? "✓ Verified" : "⚠ Not Verified";
                 profileEmailStatusValue.classList.toggle("positive", Boolean(currentUser?.emailVerified));
                 profileEmailStatusValue.classList.toggle("negative", !currentUser?.emailVerified);
+            }
+            if (profileEmailStatusValue) {
+                profileEmailStatusValue.textContent = currentUser?.emailVerified ? "Verified" : "Not Verified";
+            }
+            if (profilePhoneValue) {
+                profilePhoneValue.textContent = currentUser?.phoneNumber || "--";
             }
             if (profilePlanValue) {
                 profilePlanValue.textContent = currentUser?.subscription?.plan || "Free";
@@ -7457,6 +7575,37 @@
             return "5m";
         }
 
+        function parseBinanceKlines(payload) {
+            return Array.isArray(payload)
+                ? payload.map((item) => ({
+                    time: Math.floor(Number(item[0]) / 1000),
+                    open: Number(item[1]),
+                    high: Number(item[2]),
+                    low: Number(item[3]),
+                    close: Number(item[4]),
+                    volume: Number(item[5]),
+                })).filter((candle) => (
+                    Number.isFinite(candle.time)
+                    && Number.isFinite(candle.open)
+                    && Number.isFinite(candle.high)
+                    && Number.isFinite(candle.low)
+                    && Number.isFinite(candle.close)
+                    && Number.isFinite(candle.volume)
+                ))
+                : [];
+        }
+
+        function mergeCandlesByTime(candles) {
+            const candleByTime = new Map();
+            candles.forEach((candle) => {
+                if (candle && Number.isFinite(Number(candle.time))) {
+                    candleByTime.set(Number(candle.time), candle);
+                }
+            });
+
+            return Array.from(candleByTime.values()).sort((a, b) => Number(a.time) - Number(b.time));
+        }
+
         function stopBrowserSocket() {
             if (!browserSocket) {
                 return;
@@ -7502,7 +7651,7 @@
                     const params = new URLSearchParams({
                         symbol,
                         interval,
-                        limit: "500",
+                        limit: String(INITIAL_CANDLE_LIMIT),
                     });
                     const response = await fetch(`${BINANCE_REST_URL}?${params.toString()}`);
                     if (!response.ok) {
@@ -7510,16 +7659,7 @@
                     }
 
                     const payload = await response.json();
-                    const candles = Array.isArray(payload)
-                        ? payload.map((item) => ({
-                            time: Math.floor(item[0] / 1000),
-                            open: Number(item[1]),
-                            high: Number(item[2]),
-                            low: Number(item[3]),
-                            close: Number(item[4]),
-                            volume: Number(item[5]),
-                        }))
-                        : [];
+                    const candles = parseBinanceKlines(payload);
 
                     if (!candles.length) {
                         throw new Error("Binance returned no candles.");
@@ -9074,8 +9214,32 @@
             saveAppState();
         }
 
+        function getUserStateStorageKey() {
+            const stableId = currentUser?.dbUserId || currentUser?.authUserId || currentUser?.email;
+            return stableId ? `app:${String(stableId).toLowerCase()}` : null;
+        }
+
+        function resetUserSavedObjects() {
+            tradingState.position = null;
+            tradingState.pendingOrders = [];
+            tradingState.orderSequence = 1;
+            drawings = [];
+            selectedLine = null;
+            isDragging = false;
+            dragStart = null;
+            tempPoints = [];
+            clearAllIndicatorSeriesForRestore();
+            refreshTradingUi();
+            redrawDrawings();
+        }
+
         function saveAppState(syncRemote = true) {
-            localStorage.setItem("app", JSON.stringify({
+            const storageKey = getUserStateStorageKey();
+            if (!storageKey) {
+                return;
+            }
+
+            localStorage.setItem(storageKey, JSON.stringify({
                 position: tradingState.position,
                 pendingOrders: tradingState.pendingOrders,
                 indicators: serializeIndicatorState(),
@@ -9088,14 +9252,21 @@
 
         function loadAppState() {
             let data = null;
+            const storageKey = getUserStateStorageKey();
+
+            if (!storageKey) {
+                resetUserSavedObjects();
+                return;
+            }
 
             try {
-                data = JSON.parse(localStorage.getItem("app"));
+                data = JSON.parse(localStorage.getItem(storageKey));
             } catch (_error) {
                 data = null;
             }
 
             if (!data) {
+                resetUserSavedObjects();
                 return;
             }
 
@@ -11884,6 +12055,80 @@
             return true;
         }
 
+        async function loadOlderCandles() {
+            if (
+                isLoadingOlderCandles
+                || isLoadingData
+                || !series
+                || !currentData.length
+                || !hasMoreHistoricalCandles
+            ) {
+                return;
+            }
+
+            if (currentData.length >= MAX_STORED_CANDLES) {
+                if (!historicalPaginationMaxNoticeShown) {
+                    setStatus(`History limit reached (${MAX_STORED_CANDLES} candles loaded).`, false);
+                    historicalPaginationMaxNoticeShown = true;
+                }
+                return;
+            }
+
+            const remainingCapacity = MAX_STORED_CANDLES - currentData.length;
+            const requestLimit = Math.min(HISTORY_CANDLE_CHUNK_SIZE, remainingCapacity);
+            const oldestLoadedTime = Number(currentData[0]?.time);
+
+            if (!Number.isFinite(oldestLoadedTime) || requestLimit <= 0) {
+                return;
+            }
+
+            isLoadingOlderCandles = true;
+
+            try {
+                const params = new URLSearchParams({
+                    symbol: normalizeSymbol(activeSymbol),
+                    interval: resolveTimeframe(activeTimeframe),
+                    endTime: String((oldestLoadedTime * 1000) - 1),
+                    limit: String(requestLimit),
+                });
+                const response = await fetch(`${BINANCE_REST_URL}?${params.toString()}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const payload = await response.json();
+                const olderCandles = parseBinanceKlines(payload).filter((candle) => Number(candle.time) < oldestLoadedTime);
+
+                if (!olderCandles.length) {
+                    hasMoreHistoricalCandles = false;
+                    setStatus("No older candles available for this market/timeframe.", false);
+                    return;
+                }
+
+                const previousLength = currentData.length;
+                const previousRange = chart?.timeScale?.().getVisibleLogicalRange?.() || null;
+                currentData = mergeCandlesByTime([...olderCandles, ...currentData]).slice(-MAX_STORED_CANDLES);
+                const insertedCount = Math.max(currentData.length - previousLength, 0);
+                series.setData(currentData);
+                if (previousRange && insertedCount > 0 && chart?.timeScale?.().setVisibleLogicalRange) {
+                    chart.timeScale().setVisibleLogicalRange({
+                        from: previousRange.from + insertedCount,
+                        to: previousRange.to + insertedCount,
+                    });
+                }
+                updateHoverInfoBar(currentData[currentData.length - 1] || null);
+                updateAllMA();
+                updateIndicators();
+                scheduleDrawingRedraw();
+                setStatus(`Loaded ${olderCandles.length} older candles. Total: ${currentData.length}.`, false);
+            } catch (error) {
+                setStatus(`Older candle history failed: ${error.message}`, true);
+            } finally {
+                isLoadingOlderCandles = false;
+            }
+        }
+
         function syncMarket(symbol, timeframe) {
             isLoadingData = true;
             activeSymbol = symbol;
@@ -11893,6 +12138,9 @@
             setActiveTimeframe(timeframe);
             tradingState.lastVisiblePrice = null;
             currentData = [];
+            isLoadingOlderCandles = false;
+            hasMoreHistoricalCandles = true;
+            historicalPaginationMaxNoticeShown = false;
             updateAllMA();
             updateIndicators();
 
@@ -12081,8 +12329,15 @@
                 timeVisible: true,
             });
             chart.timeScale().fitContent();
-            chart.timeScale().subscribeVisibleLogicalRangeChange(() => {
+            chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
                 scheduleDrawingRedraw();
+                if (
+                    range
+                    && Number.isFinite(Number(range.from))
+                    && Number(range.from) <= HISTORY_LEFT_EDGE_THRESHOLD
+                ) {
+                    loadOlderCandles();
+                }
             });
 
             chart.subscribeCrosshairMove((param) => {
@@ -12492,16 +12747,32 @@
         async function handleSignup() {
             const username = signupUsernameInput.value.trim();
             const email = authEmailInput.value.trim().toLowerCase();
+            const mobileNumber = signupMobileInput.value.trim();
             const password = authPasswordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
             if (!username) {
-                showAuthMessage("Username is required.");
+                showAuthMessage("Full Name is required.");
                 return;
             }
 
             if (!isValidEmail(email)) {
                 showAuthMessage("Enter a valid email address.");
+                return;
+            }
+
+            if (!mobileNumber) {
+                showAuthMessage("Mobile Number is required.");
+                return;
+            }
+
+            if (!/^\d+$/.test(mobileNumber)) {
+                showAuthMessage("Mobile Number must contain digits only.");
+                return;
+            }
+
+            if (mobileNumber.length < 10 || mobileNumber.length > 15) {
+                showAuthMessage("Mobile Number must be between 10 and 15 digits.");
                 return;
             }
 
@@ -12523,22 +12794,41 @@
                     return;
                 }
 
-                const existingUsername = await client
+                const existingEmail = await client
                     .from("users")
                     .select("id")
-                    .eq("username", username)
+                    .eq("email", email)
                     .limit(1);
-                console.log("[supabase] signup username lookup response", existingUsername);
+                console.log("[supabase] signup email lookup response", existingEmail);
 
-                if (existingUsername.error) {
-                    logSupabaseError("signup username lookup failed", existingUsername.error);
-                    showAuthMessage(existingUsername.error.message || "Unable to verify username.");
+                if (existingEmail.error) {
+                    logSupabaseError("signup email lookup failed", existingEmail.error);
+                    showAuthMessage(existingEmail.error.message || "Unable to verify email.");
                     return;
                 }
 
-                const existingUser = Array.isArray(existingUsername.data) ? existingUsername.data[0] : existingUsername.data;
-                if (existingUser) {
-                    showAuthMessage("Username already exists.");
+                const existingEmailUser = Array.isArray(existingEmail.data) ? existingEmail.data[0] : existingEmail.data;
+                if (existingEmailUser) {
+                    showAuthMessage("This email is already registered. Please log in or use Forgot Password.");
+                    return;
+                }
+
+                const existingMobile = await client
+                    .from("users")
+                    .select("id")
+                    .eq("phone_number", mobileNumber)
+                    .limit(1);
+                console.log("[supabase] signup mobile lookup response", existingMobile);
+
+                if (existingMobile.error) {
+                    logSupabaseError("signup mobile lookup failed", existingMobile.error);
+                    showAuthMessage(existingMobile.error.message || "Unable to verify mobile number.");
+                    return;
+                }
+
+                const existingMobileUser = Array.isArray(existingMobile.data) ? existingMobile.data[0] : existingMobile.data;
+                if (existingMobileUser) {
+                    showAuthMessage("This mobile number is already registered.");
                     return;
                 }
 
@@ -12550,6 +12840,7 @@
                     {
                         data: {
                             username,
+                            phone_number: mobileNumber,
                         },
                     }
                 );
@@ -12557,6 +12848,11 @@
 
                 if (signupResult.error) {
                     logSupabaseError("auth signup failed", signupResult.error);
+                    const signupErrorMessage = String(signupResult.error.message || "").toLowerCase();
+                    if (signupErrorMessage.includes("already") || signupErrorMessage.includes("registered")) {
+                        showAuthMessage("This email is already registered. Please log in or use Forgot Password.");
+                        return;
+                    }
                     showAuthMessage(signupResult.error.message || "Unable to create account.");
                     return;
                 }
@@ -12566,7 +12862,7 @@
                     currentUser = {
                         username,
                         email,
-                        phoneNumber: "",
+                        phoneNumber: mobileNumber,
                         emailVerified: Boolean(authUser.email_confirmed_at),
                         phoneVerified: false,
                         memberSince: authUser.created_at || null,
@@ -12675,6 +12971,7 @@
             }
 
             currentUser = null;
+            resetUserSavedObjects();
             setRememberPreference(false);
             clearLegacyAuthStorage();
             setAuthMode("login");
@@ -13032,7 +13329,7 @@
 
                 await handleLogin();
             });
-            [signupUsernameInput, authEmailInput, authPasswordInput, confirmPasswordInput, recoveryNewPasswordInput, recoveryConfirmPasswordInput].forEach((input) => {
+            [signupUsernameInput, signupMobileInput, authEmailInput, authPasswordInput, confirmPasswordInput, recoveryNewPasswordInput, recoveryConfirmPasswordInput].forEach((input) => {
                 input.addEventListener("keydown", async (e) => {
                     if (e.key !== "Enter") {
                         return;
@@ -13917,8 +14214,8 @@
                     return;
                 }
 
-                series.setData(data);
-                currentData = data;
+                currentData = mergeCandlesByTime(data).slice(-MAX_STORED_CANDLES);
+                series.setData(currentData);
                 updateHoverInfoBar(currentData[currentData.length - 1] || null);
                 applyPendingIndicatorRestore();
                 updateAllMA();
@@ -13948,6 +14245,11 @@
                     currentData[currentData.length - 1] = candle;
                 } else {
                     currentData.push(candle);
+                }
+
+                if (currentData.length > MAX_STORED_CANDLES) {
+                    currentData = currentData.slice(-MAX_STORED_CANDLES);
+                    series.setData(currentData);
                 }
 
                 updateHoverInfoBar(currentData[currentData.length - 1] || candle || null);
@@ -13987,11 +14289,11 @@
                     subscription: null,
                 };
             }
-            loadAppState();
             setActivePage(preferredPage, true);
             switchWatchlistTab("market");
 
             await ensureCurrentUserDatabaseRecord();
+            loadAppState();
             const isFreshLogin = Boolean(currentUser?.recordLoginActivity);
             if (!isFreshLogin) {
                 const sessionStillValid = await enforceSingleDeviceSession();
