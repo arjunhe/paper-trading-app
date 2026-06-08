@@ -151,20 +151,28 @@
         }
 
         .landing-logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 0;
-            display: grid;
-            place-items: center;
+            width: auto;
+            height: auto;
+            display: inline-block;
             color: transparent;
-            background:
-                linear-gradient(135deg, transparent 0 20%, #67e8f9 20% 36%, transparent 36%),
-                linear-gradient(45deg, #0b63ff 0 31%, transparent 31%),
-                linear-gradient(135deg, transparent 47%, #22d3ee 47% 61%, transparent 61%),
-                linear-gradient(160deg, transparent 0 55%, #0ea5e9 55% 73%, transparent 73%),
-                linear-gradient(315deg, #1d4ed8 0 34%, transparent 34%);
-            clip-path: polygon(2% 4%, 31% 4%, 52% 32%, 78% 4%, 98% 4%, 98% 25%, 72% 25%, 55% 44%, 75% 76%, 98% 76%, 98% 96%, 68% 96%, 49% 70%, 25% 96%, 2% 96%, 2% 76%, 26% 76%, 41% 55%, 22% 25%, 2% 25%);
-            box-shadow: 0 0 32px rgba(14, 165, 233, 0.35);
+            background: none;
+            clip-path: none;
+            box-shadow: none;
+            font-size: 0;
+        }
+
+        .landing-logo::before {
+            content: "NT";
+            font-size: 42px;
+            line-height: 0.9;
+            font-weight: 950;
+            letter-spacing: -0.16em;
+            font-style: italic;
+            background: linear-gradient(135deg, #22d3ee, #0b7cff 60%, #1554ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 0 18px rgba(14, 165, 233, 0.42));
         }
 
         .landing-brand-title {
@@ -356,6 +364,13 @@
         .landing-stat-label {
             color: #cbd5e1;
             font-size: 14px;
+        }
+
+        .landing-mobile-phone,
+        .landing-mobile-trust,
+        .landing-mobile-menu-button,
+        .landing-mobile-menu {
+            display: none;
         }
 
         .landing-preview-wrap {
@@ -741,6 +756,70 @@
 
         .auth-shell.hidden {
             display: none;
+        }
+
+        .maintenance-shell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            width: 100%;
+            padding: 24px;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(37, 99, 235, 0.18), transparent 28%),
+                linear-gradient(135deg, #020617 0%, #07162b 100%);
+            color: #e5edf5;
+        }
+
+        .maintenance-shell.hidden {
+            display: none;
+        }
+
+        .maintenance-card {
+            width: min(560px, 100%);
+            padding: 28px;
+            border: 1px solid rgba(96, 165, 250, 0.22);
+            border-radius: 26px;
+            background: rgba(12, 19, 33, 0.9);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.36);
+            backdrop-filter: blur(18px);
+            text-align: center;
+        }
+
+        .maintenance-icon {
+            width: 62px;
+            height: 62px;
+            margin: 0 auto 16px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.26);
+            font-size: 28px;
+            font-weight: 950;
+        }
+
+        .maintenance-title {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: -0.04em;
+        }
+
+        .maintenance-message {
+            margin: 12px auto 0;
+            max-width: 460px;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        .maintenance-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
         }
 
         .auth-card {
@@ -3973,169 +4052,558 @@
         }
 
         @media (max-width: 640px) {
+            body.landing-visible {
+                background: #f7fbff;
+            }
+
+            body.landing-visible .landing-shell {
+                min-height: 100vh;
+                color: #071126;
+                background:
+                    radial-gradient(circle at 78% 54%, rgba(59, 130, 246, 0.13), transparent 28%),
+                    linear-gradient(180deg, #fbfdff 0%, #eef6ff 68%, #f8fbff 100%);
+                overflow-y: auto;
+                scrollbar-width: none;
+            }
+
+            body.landing-visible .landing-shell::before,
+            body.landing-visible .landing-shell::after {
+                content: none;
+            }
+
             .landing-page {
-                width: min(100% - 22px, 520px);
-                padding-top: 12px;
+                width: 100%;
+                padding: 22px 20px 0;
+                overflow: hidden;
+            }
+
+            .landing-nav {
+                position: relative;
+                min-height: 44px;
+                gap: 0;
+                flex-wrap: nowrap;
+                align-items: center;
+            }
+
+            .landing-nav::after {
+                content: "☰";
+                margin-left: auto;
+                color: #071126;
+                font-size: 38px;
+                line-height: 1;
+                font-weight: 500;
+            }
+
+            .landing-brand {
+                min-width: 0;
+                gap: 9px;
+            }
+
+            .landing-nav::after {
+                content: none;
+            }
+
+            .landing-mobile-menu-button {
+                display: grid;
+                place-items: center;
+                width: 48px;
+                height: 48px;
+                margin-left: auto;
+                border: 0;
+                background: transparent;
+                color: #071126;
+                font-size: 38px;
+                line-height: 1;
+                cursor: pointer;
+                padding: 0;
+            }
+
+            .landing-mobile-menu {
+                position: absolute;
+                top: 58px;
+                right: 0;
+                z-index: 20;
+                width: min(220px, calc(100vw - 40px));
+                padding: 10px;
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid rgba(37, 99, 235, 0.14);
+                box-shadow: 0 22px 50px rgba(15, 23, 42, 0.16);
+                backdrop-filter: blur(18px);
+            }
+
+            .landing-mobile-menu.open {
+                display: grid;
+                gap: 8px;
+            }
+
+            .landing-mobile-menu-item {
+                min-height: 44px;
+                border: 1px solid rgba(37, 99, 235, 0.16);
+                border-radius: 12px;
+                background: #f7fbff;
+                color: #071126;
+                font-weight: 900;
+                cursor: pointer;
+            }
+
+            .landing-mobile-menu-item.primary {
+                border-color: transparent;
+                color: #ffffff;
+                background: linear-gradient(135deg, #0b7cff, #1557ff);
             }
 
             .landing-logo {
-                width: 38px;
-                height: 38px;
-                border-radius: 12px;
-                font-size: 20px;
+                width: auto;
+                height: auto;
+                display: inline-block;
+                background: none;
+                clip-path: none;
+                box-shadow: none;
+                font-size: 0;
+            }
+
+            .landing-logo::before {
+                content: "NT";
+                font-size: 42px;
+                line-height: 0.9;
+                font-weight: 950;
+                letter-spacing: -0.16em;
+                font-style: italic;
+                background: linear-gradient(135deg, #22d3ee, #0b7cff 60%, #1554ff);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
             }
 
             .landing-brand-title {
-                font-size: 19px;
+                color: #071126;
+                font-size: 27px;
+                font-weight: 950;
+                letter-spacing: -0.05em;
+                text-transform: none;
             }
 
             .landing-brand-subtitle {
-                font-size: 9px;
+                display: none;
             }
 
-            .landing-links {
-                gap: 18px;
-            }
-
-            .landing-links a {
-                font-size: 13px;
-                white-space: nowrap;
-            }
-
+            .landing-links,
             .landing-actions {
-                width: 100%;
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .landing-actions .landing-button {
-                width: 100%;
+                display: none;
             }
 
             .landing-badge {
-                min-height: 30px;
-                padding: 0 12px;
-                font-size: 10px;
+                position: relative;
+                left: 50%;
+                transform: translateX(-50%);
+                min-height: 34px;
+                margin-top: 44px;
+                padding: 0 18px;
+                border-radius: 999px;
+                color: #0b63d8;
+                background: #e9f3ff;
+                border: 0;
+                box-shadow: 0 7px 20px rgba(37, 99, 235, 0.09);
+                font-size: 0;
+                text-transform: none;
+            }
+
+            .landing-badge::before {
+                content: "Smart Trading. Real Results.";
+                font-size: 17px;
+                font-weight: 900;
             }
 
             .landing-title {
-                margin-top: 22px;
-                font-size: clamp(42px, 13vw, 58px);
+                max-width: 100%;
+                margin: 26px auto 0;
+                color: transparent;
+                font-size: 0;
+                line-height: 1;
+                text-align: center;
+                letter-spacing: -0.06em;
+            }
+
+            .landing-title::before {
+                content: "Trade Smarter.\A Grow Faster.";
+                white-space: pre;
+                display: block;
+                color: #071126;
+                font-size: clamp(46px, 11.8vw, 68px);
+                line-height: 1.1;
+                font-weight: 950;
             }
 
             .landing-subtitle {
-                font-size: 15px;
-                line-height: 1.6;
+                max-width: 88%;
+                margin: 26px auto 0;
+                color: transparent;
+                font-size: 0;
+                text-align: center;
+            }
+
+            .landing-subtitle::before {
+                content: "NAT Trade empowers you to trade global markets with advanced tools, real-time data, and reliable support.";
+                color: #5b6475;
+                font-size: 22px;
+                line-height: 1.45;
+                font-weight: 500;
             }
 
             .landing-cta-row {
                 display: grid;
                 grid-template-columns: 1fr;
-                gap: 10px;
-                margin-top: 24px;
+                justify-items: center;
+                gap: 0;
+                margin-top: 32px;
             }
 
             .landing-cta-row .landing-button {
-                min-height: 52px;
-                width: 100%;
-            }
-
-            .landing-cta-row .landing-button.primary {
-                min-width: 0;
-            }
-
-            .landing-stats {
-                gap: 12px;
-                margin-top: 28px;
-            }
-
-            .landing-stat-icon {
-                width: 40px;
-                height: 40px;
-            }
-
-            .landing-stat-value {
-                font-size: 20px;
-            }
-
-            .landing-stat-label {
-                font-size: 12px;
-            }
-
-            .mock-terminal {
-                border-radius: 18px;
-            }
-
-            .mock-topbar {
-                min-height: 52px;
-                padding: 0 12px;
-            }
-
-            .mock-tools {
                 display: none;
             }
 
-            .mock-chart {
-                min-height: 290px;
+            .landing-cta-row .landing-button.primary {
+                display: inline-grid;
+                place-items: center;
+                width: min(420px, 86vw);
+                min-width: 0;
+                min-height: 74px;
+                border-radius: 999px;
+                border: 0;
+                color: transparent;
+                font-size: 0;
+                background: linear-gradient(135deg, #0b7cff, #1557ff);
+                box-shadow: 0 18px 36px rgba(37, 99, 235, 0.26);
             }
 
-            .mock-candles {
-                inset: 54px 38px 58px 28px;
-                gap: 7px;
+            .landing-cta-row .landing-button.primary::before {
+                content: "↗  Get Started";
+                color: #ffffff;
+                font-size: 25px;
+                font-weight: 950;
             }
 
-            .mock-candle,
-            .mock-volume span {
-                width: 7px;
+            .landing-stats {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 18px;
+                margin: 38px auto 0;
+                max-width: 92%;
             }
 
-            .mock-volume {
-                left: 30px;
-                right: 40px;
-                gap: 7px;
+            .landing-stat {
+                display: grid;
+                justify-items: center;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .landing-stat:nth-child(4) {
+                display: none;
+            }
+
+            .landing-stat-icon {
+                width: 70px;
+                height: 70px;
+                border-radius: 18px;
+                border: 0;
+                color: transparent;
+                background: #e7f1ff;
+                box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+                font-size: 0;
+            }
+
+            .landing-stat:nth-child(1) .landing-stat-icon::before {
+                content: "♢";
+            }
+
+            .landing-stat:nth-child(2) .landing-stat-icon::before {
+                content: "ϟ";
+            }
+
+            .landing-stat:nth-child(3) .landing-stat-icon::before {
+                content: "▥";
+            }
+
+            .landing-stat-icon::before {
+                color: #0b7cff;
+                font-size: 34px;
+                font-weight: 900;
+            }
+
+            .landing-stat-value {
+                color: transparent;
+                font-size: 0;
+            }
+
+            .landing-stat:nth-child(1) .landing-stat-value::before {
+                content: "Secure";
+            }
+
+            .landing-stat:nth-child(2) .landing-stat-value::before {
+                content: "Fast";
+            }
+
+            .landing-stat:nth-child(3) .landing-stat-value::before {
+                content: "Smart";
+            }
+
+            .landing-stat-value::before {
+                color: #071126;
+                font-size: 20px;
+                font-weight: 900;
+            }
+
+            .landing-stat-label {
+                color: transparent;
+                font-size: 0;
+                line-height: 1.25;
+            }
+
+            .landing-stat:nth-child(1) .landing-stat-label::before {
+                content: "Top-notch\A security";
+            }
+
+            .landing-stat:nth-child(2) .landing-stat-label::before {
+                content: "Lightning-fast\A execution";
+            }
+
+            .landing-stat:nth-child(3) .landing-stat-label::before {
+                content: "Advanced tools\A & insights";
+            }
+
+            .landing-stat-label::before {
+                white-space: pre;
+                color: #4b5565;
+                font-size: 16px;
+            }
+
+            .landing-preview-wrap {
+                display: none;
+            }
+
+            .landing-mobile-phone {
+                display: block;
+                position: relative;
+                margin: 50px -20px 0;
+                min-height: 650px;
+                overflow: hidden;
+            }
+
+            .landing-mobile-wave {
+                position: absolute;
+                left: -12%;
+                right: -12%;
+                bottom: 0;
+                height: 170px;
+                background: linear-gradient(135deg, #0b7cff, #4c83ff);
+                border-radius: 58% 42% 0 0 / 30% 24% 0 0;
+                z-index: 0;
+            }
+
+            .landing-phone-device {
+                position: relative;
+                z-index: 1;
+                width: min(390px, 76vw);
+                height: 620px;
+                margin: 0 auto;
+                padding: 12px;
+                border-radius: 42px;
+                background: linear-gradient(145deg, #020617, #171717);
+                box-shadow: 0 28px 54px rgba(15, 23, 42, 0.3);
+                transform: rotate(8deg);
+                transform-origin: center bottom;
+            }
+
+            .landing-phone-device::before {
+                content: "";
+                position: absolute;
+                inset: 8px;
+                border-radius: 36px;
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                pointer-events: none;
+            }
+
+            .landing-phone-screen {
+                height: 100%;
+                border-radius: 34px;
+                padding: 22px 20px;
+                overflow: hidden;
+                color: #071126;
+                background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+            }
+
+            .landing-phone-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 20px;
+                margin-bottom: 18px;
+            }
+
+            .landing-phone-balance {
+                position: relative;
+                min-height: 128px;
+                padding: 18px;
+                border-radius: 14px;
+                color: white;
+                background: linear-gradient(135deg, #0b7cff, #1557ff);
+                overflow: hidden;
+            }
+
+            .landing-phone-balance span {
+                display: block;
+                font-size: 14px;
+                opacity: 0.84;
+            }
+
+            .landing-phone-balance strong {
+                display: block;
+                margin-top: 8px;
+                font-size: 29px;
+            }
+
+            .landing-phone-balance em {
+                position: absolute;
+                right: 20px;
+                top: 52px;
+                padding: 6px 10px;
+                border-radius: 999px;
+                background: #10b981;
+                font-style: normal;
+                font-weight: 900;
+                font-size: 12px;
+            }
+
+            .landing-phone-line {
+                position: absolute;
+                left: 22px;
+                right: 20px;
+                bottom: 24px;
                 height: 42px;
+                background: linear-gradient(135deg, transparent 0 20%, rgba(255,255,255,0.72) 21% 23%, transparent 24% 38%, rgba(255,255,255,0.72) 39% 41%, transparent 42% 58%, rgba(255,255,255,0.72) 59% 61%, transparent 62%);
             }
 
-            .mock-sidebar {
-                grid-template-columns: 1fr;
-            }
-
-            .landing-feature-grid,
-            .market-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .landing-feature-card,
-            .market-card {
-                grid-template-columns: 48px minmax(0, 1fr);
-                padding: 16px;
-            }
-
-            .landing-trust-row {
-                grid-template-columns: 1fr;
-                gap: 12px;
-                padding: 18px 0;
-            }
-
-            .landing-trust-item {
-                justify-content: flex-start;
-            }
-
-            .landing-section {
-                padding: 36px 0;
-            }
-
-            .landing-section-head {
+            .landing-phone-actions {
                 display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                margin: 18px 0;
+                text-align: center;
+                color: #0b63d8;
+                font-size: 24px;
             }
 
-            .landing-about-card {
-                padding: 20px;
+            .landing-phone-actions span {
+                display: block;
+                margin-top: 6px;
+                color: #1f2937;
+                font-size: 11px;
             }
 
+            .landing-phone-list-head,
+            .landing-phone-row {
+                display: grid;
+                grid-template-columns: auto 1fr auto auto;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .landing-phone-list-head {
+                grid-template-columns: 1fr auto;
+                margin: 16px 0 10px;
+                font-size: 16px;
+            }
+
+            .landing-phone-list-head span {
+                color: #0b7cff;
+                font-size: 13px;
+                font-weight: 800;
+            }
+
+            .landing-phone-row {
+                padding: 11px 0;
+                border-bottom: 1px solid #edf2f7;
+                font-size: 13px;
+            }
+
+            .landing-phone-row b {
+                width: 26px;
+                height: 26px;
+                border-radius: 999px;
+                display: grid;
+                place-items: center;
+                color: white;
+                background: #f59e0b;
+                font-size: 13px;
+            }
+
+            .landing-phone-row:nth-child(3) b {
+                background: #6366f1;
+            }
+
+            .landing-phone-row:nth-child(4) b {
+                background: #111827;
+            }
+
+            .landing-phone-row small {
+                color: #6b7280;
+            }
+
+            .landing-phone-row i {
+                width: 64px;
+                height: 24px;
+                background: linear-gradient(135deg, transparent 0 26%, #22c55e 27% 32%, transparent 33% 48%, #22c55e 49% 55%, transparent 56%);
+            }
+
+            .landing-phone-row span {
+                text-align: right;
+                font-weight: 900;
+            }
+
+            .landing-phone-row em {
+                color: #10b981;
+                font-style: normal;
+            }
+
+            .landing-mobile-trust {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin: 0 -20px;
+                padding: 18px 28px 24px;
+                color: #303747;
+                background: rgba(255, 255, 255, 0.94);
+                font-size: 17px;
+                line-height: 1.35;
+            }
+
+            .landing-mobile-trust-icon {
+                width: 54px;
+                height: 54px;
+                border-radius: 14px;
+                display: grid;
+                place-items: center;
+                color: #0b7cff;
+                background: #e7f1ff;
+                font-weight: 950;
+                flex: 0 0 auto;
+            }
+
+            .landing-mobile-trust strong,
+            .landing-mobile-trust span {
+                display: block;
+            }
+
+            .landing-mobile-trust strong {
+                color: #071126;
+            }
+
+            #landingFeatures,
+            #landingMarkets,
+            #landingAbout,
             .landing-footer {
-                display: grid;
-                gap: 12px;
+                display: none;
             }
 
             #app {
@@ -5466,6 +5934,13 @@
                     <button class="landing-button" type="button" data-auth-open="login">Login</button>
                     <button class="landing-button primary" type="button" data-auth-open="signup">Create Account</button>
                 </div>
+                <button id="landingMobileMenuButton" class="landing-mobile-menu-button" type="button"
+                    aria-label="Open landing menu" aria-expanded="false">☰</button>
+                <div id="landingMobileMenu" class="landing-mobile-menu">
+                    <button class="landing-mobile-menu-item" type="button" data-auth-open="login">Login</button>
+                    <button class="landing-mobile-menu-item primary" type="button" data-auth-open="signup">Sign Up</button>
+                    <button id="landingDownloadButton" class="landing-mobile-menu-item" type="button">Download</button>
+                </div>
             </nav>
 
             <section id="landingHome" class="landing-hero">
@@ -5575,7 +6050,45 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="landing-mobile-phone" aria-label="Mobile trading app preview">
+                    <div class="landing-phone-device">
+                        <div class="landing-phone-screen">
+                            <div class="landing-phone-top">
+                                <strong>NAT Trade</strong>
+                                <span>↗  🔔</span>
+                            </div>
+                            <div class="landing-phone-balance">
+                                <span>Total Balance</span>
+                                <strong>$24,560.00</strong>
+                                <em>+12.45%</em>
+                                <div class="landing-phone-line"></div>
+                            </div>
+                            <div class="landing-phone-actions">
+                                <div>↓<span>Deposit</span></div>
+                                <div>↑<span>Withdraw</span></div>
+                                <div>◎<span>Markets</span></div>
+                                <div>👤<span>Profile</span></div>
+                            </div>
+                            <div class="landing-phone-list">
+                                <div class="landing-phone-list-head"><strong>Top Gainers</strong><span>See All</span></div>
+                                <div class="landing-phone-row"><b>₿</b><strong>BTC <small>/ USDT</small></strong><i></i><span>$67,890.00<br><em>+3.21%</em></span></div>
+                                <div class="landing-phone-row"><b>◆</b><strong>ETH <small>/ USDT</small></strong><i></i><span>$3,456.78<br><em>+2.45%</em></span></div>
+                                <div class="landing-phone-row"><b>✕</b><strong>XRP <small>/ USDT</small></strong><i></i><span>$0.6123<br><em>+1.89%</em></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="landing-mobile-wave"></div>
+                </div>
             </section>
+
+            <div class="landing-mobile-trust">
+                <div class="landing-mobile-trust-icon">S</div>
+                <div>
+                    <span>Trusted by thousands of traders worldwide.</span>
+                    <strong>Join NAT Trade today!</strong>
+                </div>
+            </div>
 
             <section id="landingFeatures" class="landing-section">
                 <div class="landing-section-head">
@@ -5722,6 +6235,21 @@
             </div>
             <div class="auth-actions">
                 <button id="goToLoginButton" class="primary-button" type="button">Go To Login</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="maintenanceShell" class="maintenance-shell hidden">
+        <div class="maintenance-card">
+            <div class="maintenance-icon">!</div>
+            <h1 id="maintenanceTitle" class="maintenance-title">Service Temporarily Unavailable</h1>
+            <p id="maintenanceMessage" class="maintenance-message">
+                NAT Trade is having trouble reaching a required service. Please check your internet connection
+                or try again in a few minutes.
+            </p>
+            <div class="maintenance-actions">
+                <button id="maintenanceRetryButton" class="primary-button" type="button">Retry</button>
+                <button id="maintenanceLoginButton" class="ghost-button" type="button">Go To Login</button>
             </div>
         </div>
     </div>
@@ -6240,8 +6768,16 @@
         const authResultError = document.getElementById("authResultError");
         const updateRecoveryPasswordButton = document.getElementById("updateRecoveryPasswordButton");
         const goToLoginButton = document.getElementById("goToLoginButton");
+        const maintenanceShell = document.getElementById("maintenanceShell");
+        const maintenanceTitle = document.getElementById("maintenanceTitle");
+        const maintenanceMessage = document.getElementById("maintenanceMessage");
+        const maintenanceRetryButton = document.getElementById("maintenanceRetryButton");
+        const maintenanceLoginButton = document.getElementById("maintenanceLoginButton");
         const landingShell = document.getElementById("landingShell");
         const landingAuthButtons = Array.from(document.querySelectorAll("[data-auth-open]"));
+        const landingMobileMenuButton = document.getElementById("landingMobileMenuButton");
+        const landingMobileMenu = document.getElementById("landingMobileMenu");
+        const landingDownloadButton = document.getElementById("landingDownloadButton");
         const authTitle = document.getElementById("authTitle");
         const authSubtitle = document.getElementById("authSubtitle");
         const signupUsernameGroup = document.getElementById("signupUsernameGroup");
@@ -7440,6 +7976,10 @@
                     supabaseClientPromise = null;
                     if (supabaseLoadAttempts >= 1) {
                         notifySupabaseUnavailable(error);
+                        showMaintenancePage(
+                            "Authentication Service Unavailable",
+                            "NAT Trade cannot reach Supabase right now, so login, signup, synchronization, and account data are temporarily unavailable. Please check your connection and try again."
+                        );
                     }
                     return null;
                 });
@@ -7488,8 +8028,6 @@
                     email: normalizedEmail,
                     username: currentUser.username || normalizedEmail.split("@")[0],
                     phone_number: currentUser.phoneNumber || null,
-                    email_verified: Boolean(currentUser.emailVerified),
-                    phone_verified: Boolean(currentUser.phoneVerified),
                     terms_accepted_at: currentUser.termsAcceptedAt || null,
                     privacy_accepted_at: currentUser.privacyAcceptedAt || null,
                 };
@@ -7539,6 +8077,73 @@
             console.log("[supabase] resolved db user id", currentUser.dbUserId);
 
             return currentUser.dbUserId;
+        }
+
+        function isMissingSignupCheckRpcError(error) {
+            const message = String(error?.message || "").toLowerCase();
+            return error?.code === "PGRST202"
+                || error?.code === "42883"
+                || message.includes("could not find the function")
+                || message.includes("function public.is_email_registered")
+                || message.includes("function public.is_phone_registered");
+        }
+
+        async function checkSignupEmailRegistered(client, email) {
+            const rpcResult = await client.rpc("is_email_registered", { check_email: email });
+            console.log("[supabase] signup email availability rpc response", rpcResult);
+
+            if (!rpcResult.error) {
+                return Boolean(rpcResult.data);
+            }
+
+            if (!isMissingSignupCheckRpcError(rpcResult.error)) {
+                logSupabaseError("signup email availability rpc failed", rpcResult.error);
+                throw rpcResult.error;
+            }
+
+            const fallback = await client
+                .from("users")
+                .select("id")
+                .eq("email", email)
+                .limit(1);
+            console.log("[supabase] signup email fallback lookup response", fallback);
+
+            if (fallback.error) {
+                logSupabaseError("signup email fallback lookup failed", fallback.error);
+                throw fallback.error;
+            }
+
+            const existingUser = Array.isArray(fallback.data) ? fallback.data[0] : fallback.data;
+            return Boolean(existingUser);
+        }
+
+        async function checkSignupPhoneRegistered(client, phoneNumber) {
+            const rpcResult = await client.rpc("is_phone_registered", { check_phone: phoneNumber });
+            console.log("[supabase] signup phone availability rpc response", rpcResult);
+
+            if (!rpcResult.error) {
+                return Boolean(rpcResult.data);
+            }
+
+            if (!isMissingSignupCheckRpcError(rpcResult.error)) {
+                logSupabaseError("signup phone availability rpc failed", rpcResult.error);
+                throw rpcResult.error;
+            }
+
+            const fallback = await client
+                .from("users")
+                .select("id")
+                .eq("phone_number", phoneNumber)
+                .limit(1);
+            console.log("[supabase] signup phone fallback lookup response", fallback);
+
+            if (fallback.error) {
+                logSupabaseError("signup phone fallback lookup failed", fallback.error);
+                throw fallback.error;
+            }
+
+            const existingUser = Array.isArray(fallback.data) ? fallback.data[0] : fallback.data;
+            return Boolean(existingUser);
         }
 
         async function loadCurrentUserWatchlistFromDatabase() {
@@ -8002,8 +8607,6 @@
                 .from("users")
                 .update({
                     active_device_id: device.deviceId,
-                    email_verified: currentUser.emailVerified ?? true,
-                    phone_verified: currentUser.phoneVerified ?? false,
                 })
                 .eq("id", userId);
             console.log("[supabase] users active_device_id update response", userUpdate);
@@ -8753,6 +9356,7 @@
             landingShell.classList.add("hidden");
             authShell.classList.add("hidden");
             authResultShell.classList.add("hidden");
+            maintenanceShell.classList.add("hidden");
             appRoot.classList.remove("hidden-app");
             historyDrawer.classList.remove("hidden");
             renderCurrentUser();
@@ -8773,6 +9377,7 @@
             document.body.classList.remove("landing-visible");
             landingShell.classList.add("hidden");
             authResultShell.classList.add("hidden");
+            maintenanceShell.classList.add("hidden");
             authShell.classList.remove("hidden");
             appRoot.classList.add("hidden-app");
             drawerBackdrop.classList.add("hidden");
@@ -8787,11 +9392,24 @@
             landingShell.classList.remove("hidden");
             authShell.classList.add("hidden");
             authResultShell.classList.add("hidden");
+            maintenanceShell.classList.add("hidden");
             appRoot.classList.add("hidden-app");
             drawerBackdrop.classList.add("hidden");
             setOverlay("", false);
             setStatus("", false);
             closeTradeModal();
+        }
+
+        function showMaintenancePage(title = "Service Temporarily Unavailable", message = "") {
+            document.body.classList.remove("landing-visible");
+            landingShell.classList.add("hidden");
+            authShell.classList.add("hidden");
+            authResultShell.classList.add("hidden");
+            appRoot.classList.add("hidden-app");
+            drawerBackdrop.classList.add("hidden");
+            maintenanceTitle.textContent = title;
+            maintenanceMessage.textContent = message || "NAT Trade is having trouble reaching a required service. Please check your internet connection or try again in a few minutes.";
+            maintenanceShell.classList.remove("hidden");
         }
 
         function createSignal() {
@@ -14086,6 +14704,7 @@
         function showAuthResultPage({ title, message, mode = "message", isError = false }) {
             document.body.classList.remove("landing-visible");
             landingShell.classList.add("hidden");
+            maintenanceShell.classList.add("hidden");
             authShell.classList.add("hidden");
             appRoot.classList.add("hidden-app");
             authResultShell.classList.remove("hidden");
@@ -14338,44 +14957,19 @@
                     return;
                 }
 
-                const existingEmail = await client
-                    .from("users")
-                    .select("id")
-                    .eq("email", email)
-                    .limit(1);
-                console.log("[supabase] signup email lookup response", existingEmail);
-
-                if (existingEmail.error) {
-                    logSupabaseError("signup email lookup failed", existingEmail.error);
-                    showAuthMessage(existingEmail.error.message || "Unable to verify email.");
-                    return;
-                }
-
-                const existingEmailUser = Array.isArray(existingEmail.data) ? existingEmail.data[0] : existingEmail.data;
-                if (existingEmailUser) {
+                const emailRegistered = await checkSignupEmailRegistered(client, email);
+                if (emailRegistered) {
                     showAuthMessage("This email is already registered. Please log in or use Forgot Password.");
                     return;
                 }
 
-                const existingMobile = await client
-                    .from("users")
-                    .select("id")
-                    .eq("phone_number", mobileNumber)
-                    .limit(1);
-                console.log("[supabase] signup mobile lookup response", existingMobile);
-
-                if (existingMobile.error) {
-                    logSupabaseError("signup mobile lookup failed", existingMobile.error);
-                    showAuthMessage(existingMobile.error.message || "Unable to verify mobile number.");
-                    return;
-                }
-
-                const existingMobileUser = Array.isArray(existingMobile.data) ? existingMobile.data[0] : existingMobile.data;
-                if (existingMobileUser) {
+                const phoneRegistered = await checkSignupPhoneRegistered(client, mobileNumber);
+                if (phoneRegistered) {
                     showAuthMessage("This mobile number is already registered.");
                     return;
                 }
 
+                const acceptedAt = getSignupAcceptanceTimestamp();
                 const signupResult = await client.auth.signUp(
                     {
                         email,
@@ -14385,6 +14979,8 @@
                         data: {
                             username,
                             phone_number: mobileNumber,
+                            terms_accepted_at: acceptedAt,
+                            privacy_accepted_at: acceptedAt,
                         },
                     }
                 );
@@ -14402,8 +14998,7 @@
                 }
 
                 const authUser = signupResult.user || signupResult.session?.user || null;
-                if (authUser) {
-                    const acceptedAt = getSignupAcceptanceTimestamp();
+                if (authUser && signupResult.session) {
                     currentUser = {
                         username,
                         email,
@@ -14419,9 +15014,7 @@
                         watchlist: [],
                     };
                     await ensureCurrentUserDatabaseRecord();
-                    if (signupResult.session) {
-                        await client.auth.signOut();
-                    }
+                    await client.auth.signOut();
                     currentUser = null;
                 }
 
@@ -14836,6 +15429,28 @@
             }
         }
 
+        function closeLandingMobileMenu() {
+            if (landingMobileMenu) {
+                landingMobileMenu.classList.remove("open");
+            }
+            if (landingMobileMenuButton) {
+                landingMobileMenuButton.setAttribute("aria-expanded", "false");
+            }
+        }
+
+        function toggleLandingMobileMenu() {
+            if (!landingMobileMenu || !landingMobileMenuButton) {
+                return;
+            }
+            const isOpen = landingMobileMenu.classList.toggle("open");
+            landingMobileMenuButton.setAttribute("aria-expanded", String(isOpen));
+        }
+
+        function handleLandingDownload() {
+            closeLandingMobileMenu();
+            showToast("Download option will be available soon.", "info");
+        }
+
         // UI Controls
         function wireUi() {
             pageNavButtons.forEach((button) => {
@@ -14850,11 +15465,22 @@
             if (activeTradesButton) {
                 activeTradesButton.addEventListener("click", openActiveTradesModal);
             }
+            if (landingMobileMenuButton) {
+                landingMobileMenuButton.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleLandingMobileMenu();
+                });
+            }
+            if (landingDownloadButton) {
+                landingDownloadButton.addEventListener("click", handleLandingDownload);
+            }
             landingAuthButtons.forEach((button) => {
                 button.addEventListener("click", () => {
                     const requestedMode = button.dataset.authOpen === "signup" ? "signup" : "login";
                     clearAuthInputs();
                     setAuthMode(requestedMode);
+                    closeLandingMobileMenu();
                     showAuthShell();
                 });
             });
@@ -14876,6 +15502,11 @@
             });
             closeLegalModalButton.addEventListener("click", closeLegalPage);
             goToLoginButton.addEventListener("click", goToLoginPage);
+            maintenanceRetryButton.addEventListener("click", () => window.location.reload());
+            maintenanceLoginButton.addEventListener("click", () => {
+                setAuthMode("login");
+                showAuthShell();
+            });
             updateRecoveryPasswordButton.addEventListener("click", handleRecoveryPasswordUpdate);
             legalModal.addEventListener("click", (e) => {
                 if (e.target === legalModal) {
@@ -15761,6 +16392,13 @@
                 });
             }
             document.addEventListener("click", (e) => {
+                if (
+                    landingMobileMenu?.classList.contains("open")
+                    && !landingMobileMenu.contains(e.target)
+                    && e.target !== landingMobileMenuButton
+                ) {
+                    closeLandingMobileMenu();
+                }
                 if (!indicatorPanel.contains(e.target) && e.target !== indicatorBtn) {
                     indicatorPanel.classList.add("hidden");
                 }
@@ -15995,6 +16633,10 @@
                 console.error(error);
                 setOverlay("Unable to load chart library. Check internet access.", true);
                 setStatus(error.message, true);
+                showMaintenancePage(
+                    "Chart Service Unavailable",
+                    "NAT Trade cannot load the chart engine right now. Please check your internet connection and try again."
+                );
                 return;
             }
 
@@ -16051,7 +16693,10 @@
 
             const client = await ensureSupabaseClient();
             if (!client) {
-                showLandingShell();
+                showMaintenancePage(
+                    "Authentication Service Unavailable",
+                    "NAT Trade cannot reach Supabase right now, so login, signup, synchronization, and account data are temporarily unavailable. Please check your connection and try again."
+                );
                 return;
             }
 
