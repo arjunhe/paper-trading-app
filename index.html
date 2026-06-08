@@ -2675,6 +2675,87 @@
             transform: none;
         }
 
+        body.pyqt-desktop .landing-page {
+            width: min(1380px, calc(100vw - 56px));
+            max-width: 100%;
+        }
+
+        body.pyqt-desktop .landing-nav {
+            display: grid;
+            grid-template-columns: minmax(230px, auto) minmax(360px, 1fr) auto;
+            align-items: center;
+            column-gap: 28px;
+            width: 100%;
+        }
+
+        body.pyqt-desktop .landing-brand,
+        body.pyqt-desktop .landing-actions {
+            min-width: 0;
+            flex: 0 0 auto;
+        }
+
+        body.pyqt-desktop .landing-links {
+            display: flex;
+            justify-content: center;
+            gap: clamp(24px, 3vw, 42px);
+            min-width: 360px;
+            overflow: visible;
+            white-space: nowrap;
+        }
+
+        body.pyqt-desktop .landing-links a {
+            flex: 0 0 auto;
+        }
+
+        body.pyqt-desktop .landing-hero {
+            grid-template-columns: minmax(390px, 0.82fr) minmax(560px, 1.18fr);
+            gap: clamp(20px, 2.2vw, 36px);
+            width: 100%;
+        }
+
+        body.pyqt-desktop .landing-preview-wrap {
+            min-width: 0;
+            overflow: visible;
+        }
+
+        body.pyqt-desktop .landing-preview {
+            inset: 0;
+            max-width: 100%;
+        }
+
+        @media (max-width: 1240px) {
+            body.pyqt-desktop .landing-page {
+                width: min(1120px, calc(100vw - 40px));
+            }
+
+            body.pyqt-desktop .landing-nav {
+                grid-template-columns: 1fr;
+                row-gap: 14px;
+            }
+
+            body.pyqt-desktop .landing-brand,
+            body.pyqt-desktop .landing-links,
+            body.pyqt-desktop .landing-actions {
+                justify-self: center;
+            }
+
+            body.pyqt-desktop .landing-links {
+                order: 2;
+                min-width: 0;
+                width: 100%;
+                justify-content: center;
+                gap: clamp(24px, 5vw, 46px);
+            }
+
+            body.pyqt-desktop .landing-actions {
+                order: 3;
+            }
+
+            body.pyqt-desktop .landing-hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
         body.pyqt-desktop #app,
         body.pyqt-desktop .app-shell,
         body.pyqt-desktop .app-main,
@@ -4151,6 +4232,34 @@
                 border-color: transparent;
                 color: #ffffff;
                 background: linear-gradient(135deg, #0b7cff, #1557ff);
+            }
+
+            .landing-mobile-legal {
+                display: grid;
+                gap: 7px;
+                margin-top: 8px;
+                padding-top: 10px;
+                border-top: 1px solid rgba(37, 99, 235, 0.12);
+            }
+
+            .landing-mobile-legal-title {
+                color: #64748b;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            .landing-mobile-legal-link {
+                color: #334155;
+                font-size: 12px;
+                font-weight: 800;
+                text-decoration: none;
+                line-height: 1.2;
+            }
+
+            .landing-mobile-legal-link:hover {
+                color: #0b7cff;
             }
 
             .landing-logo {
@@ -5908,6 +6017,183 @@
             }
 
         }
+
+        body.pyqt-desktop.landing-visible .landing-page {
+            width: min(1280px, calc(100vw - 48px));
+            padding-top: 18px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-nav {
+            display: grid;
+            grid-template-columns: minmax(250px, 0.9fr) minmax(390px, 1.2fr) minmax(320px, 0.9fr);
+            align-items: center;
+            gap: 0;
+            min-height: 64px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-brand {
+            justify-self: start;
+            min-width: 0;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-links {
+            justify-self: center;
+            justify-content: center;
+            gap: 0;
+            min-width: 0;
+            width: auto;
+            overflow: visible;
+            white-space: nowrap;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-links a {
+            flex: 0 0 auto;
+            font-size: 13px;
+            padding: 10px 0;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-links a + a {
+            margin-left: 24px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-actions {
+            justify-self: end;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-language {
+            font-size: 13px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-actions .landing-button {
+            min-height: 42px;
+            padding: 0 18px;
+            font-size: 13px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-hero {
+            grid-template-columns: minmax(360px, 0.78fr) minmax(520px, 1.22fr);
+            gap: 18px;
+            padding: 56px 0 26px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-badge {
+            min-height: 31px;
+            font-size: 11px;
+            padding: 0 14px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-title {
+            margin-top: 22px;
+            font-size: clamp(42px, 4.1vw, 60px);
+            max-width: 560px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-subtitle {
+            margin-top: 16px;
+            max-width: 520px;
+            font-size: 16px;
+            line-height: 1.55;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-cta-row {
+            margin-top: 24px;
+            gap: 14px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-cta-row .landing-button {
+            min-height: 48px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-stats {
+            margin-top: 30px;
+            gap: 22px;
+            max-width: 580px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-preview-wrap {
+            min-height: 455px;
+        }
+
+        body.pyqt-desktop.landing-visible .landing-preview {
+            min-height: 455px;
+            grid-template-columns: minmax(0, 1fr) 172px;
+            transform: perspective(1200px) rotateY(-5deg) rotateX(1deg) rotateZ(-1deg);
+            inset: 0;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-topbar {
+            min-height: 50px;
+            padding: 0 14px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-chart {
+            min-height: 405px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-candles {
+            inset: 56px 70px 68px 48px;
+            gap: 8px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-candle,
+        body.pyqt-desktop.landing-visible .mock-volume span {
+            width: 8px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-volume {
+            left: 48px;
+            right: 70px;
+            gap: 8px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-side-card {
+            padding: 13px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-balance {
+            font-size: 20px;
+        }
+
+        body.pyqt-desktop.landing-visible .mock-trade-button {
+            height: 40px;
+        }
+
+        @media (max-width: 1180px) {
+            body.pyqt-desktop.landing-visible .landing-page {
+                width: min(1040px, calc(100vw - 36px));
+            }
+
+            body.pyqt-desktop.landing-visible .landing-nav {
+                grid-template-columns: 1fr;
+                row-gap: 12px;
+            }
+
+            body.pyqt-desktop.landing-visible .landing-brand,
+            body.pyqt-desktop.landing-visible .landing-links,
+            body.pyqt-desktop.landing-visible .landing-actions {
+                justify-self: center;
+            }
+
+            body.pyqt-desktop.landing-visible .landing-links a + a {
+                margin-left: 28px;
+            }
+
+            body.pyqt-desktop.landing-visible .landing-hero {
+                grid-template-columns: minmax(0, 1fr);
+                padding-top: 38px;
+            }
+
+            body.pyqt-desktop.landing-visible .landing-preview-wrap {
+                min-height: 430px;
+            }
+
+            body.pyqt-desktop.landing-visible .landing-preview {
+                transform: none;
+                min-height: 430px;
+            }
+        }
     </style>
 </head>
 
@@ -5940,9 +6226,13 @@
                     <button class="landing-mobile-menu-item" type="button" data-auth-open="login">Login</button>
                     <button class="landing-mobile-menu-item primary" type="button" data-auth-open="signup">Sign Up</button>
                     <button id="landingDownloadButton" class="landing-mobile-menu-item" type="button">Download</button>
-                    <a class="landing-mobile-menu-item" href="privacy-policy.html">Privacy Policy</a>
-                    <a class="landing-mobile-menu-item" href="terms-and-conditions.html">Terms &amp; Conditions</a>
-                    <a class="landing-mobile-menu-item" href="disclaimer.html">Disclaimer</a>
+                    <a class="landing-mobile-menu-item" href="signals.html">Signals <span style="color:#f59e0b;">Coming Soon</span></a>
+                    <div class="landing-mobile-legal">
+                        <div class="landing-mobile-legal-title">Legal</div>
+                        <a class="landing-mobile-legal-link" href="privacy-policy.html">Privacy Policy</a>
+                        <a class="landing-mobile-legal-link" href="terms-and-conditions.html">Terms &amp; Conditions</a>
+                        <a class="landing-mobile-legal-link" href="disclaimer.html">Disclaimer</a>
+                    </div>
                 </div>
             </nav>
 
@@ -6698,6 +6988,8 @@
         let lastKnownFullscreenState = false;
         let fullscreenLayoutSnapshot = null;
         let appStarted = false;
+        let coreUiWired = false;
+        let appUiWired = false;
         let touchToolGesture = null;
         let authMode = "login";
         let currentUser = null;
@@ -7275,6 +7567,7 @@
                 createNavButton("trade", "📈", "Trade", "Chart and orders"),
                 createNavButton("dashboard", "🏠", "Dashboard", "Portfolio overview"),
                 createNavButton("history", "📜", "Trade History", "Closed trades"),
+                createNavButton("signals", "💎", "Signals", "Premium insights"),
                 createNavButton("profile", "👤", "Profile", "Account menu"),
             ];
             desktopButtons.forEach((button) => desktopNavList.appendChild(button));
@@ -7559,6 +7852,7 @@
                 createNavButton("trade", "📈", "Trade", "", true),
                 createNavButton("dashboard", "🏠", "Dashboard", "", true),
                 createNavButton("history", "📜", "History", "", true),
+                createNavButton("signals", "💎", "Signals", "", true),
                 createNavButton("profile", "👤", "Profile", "", true),
             ];
             mobileButtons.forEach((button) => mobileNav.appendChild(button));
@@ -15524,20 +15818,12 @@
             showToast("Download option will be available soon.", "info");
         }
 
-        // UI Controls
-        function wireUi() {
-            pageNavButtons.forEach((button) => {
-                button.addEventListener("click", () => setActivePage(button.dataset.navPage));
-            });
-            if (pendingOrdersNavButton) {
-                pendingOrdersNavButton.addEventListener("click", openPendingOrdersModal);
+        function wireCoreUi() {
+            if (coreUiWired) {
+                return;
             }
-            if (pendingOrdersMobileButton) {
-                pendingOrdersMobileButton.addEventListener("click", openPendingOrdersModal);
-            }
-            if (activeTradesButton) {
-                activeTradesButton.addEventListener("click", openActiveTradesModal);
-            }
+            coreUiWired = true;
+
             if (landingMobileMenuButton) {
                 landingMobileMenuButton.addEventListener("click", (event) => {
                     event.preventDefault();
@@ -15617,6 +15903,42 @@
                     await handleLogin();
                 });
             });
+            document.addEventListener("click", (e) => {
+                if (
+                    landingMobileMenu?.classList.contains("open")
+                    && !landingMobileMenu.contains(e.target)
+                    && e.target !== landingMobileMenuButton
+                ) {
+                    closeLandingMobileMenu();
+                }
+            });
+        }
+
+        // UI Controls
+        function wireUi() {
+            if (appUiWired) {
+                return;
+            }
+            appUiWired = true;
+
+            pageNavButtons.forEach((button) => {
+                button.addEventListener("click", () => {
+                    if (button.dataset.navPage === "signals") {
+                        window.location.href = "signals.html";
+                        return;
+                    }
+                    setActivePage(button.dataset.navPage);
+                });
+            });
+            if (pendingOrdersNavButton) {
+                pendingOrdersNavButton.addEventListener("click", openPendingOrdersModal);
+            }
+            if (pendingOrdersMobileButton) {
+                pendingOrdersMobileButton.addEventListener("click", openPendingOrdersModal);
+            }
+            if (activeTradesButton) {
+                activeTradesButton.addEventListener("click", openActiveTradesModal);
+            }
             applyButton.addEventListener("click", () => {
                 const selection = resolveSymbolSelection(symbolInput.value);
                 if (selection) {
@@ -16640,6 +16962,10 @@
         }
 
         async function startAppRuntime() {
+            buildMultiPageLayout();
+            wireUi();
+            renderCurrentUser();
+
             const isMobileStartup = window.matchMedia("(max-width: 768px)").matches;
             const preferredPage = "watchlist";
             watchlistViewMode = "market";
@@ -16762,10 +17088,9 @@
         }
 
         async function bootstrap() {
-            buildMultiPageLayout();
-            wireUi();
             setAuthMode("login");
-            renderCurrentUser();
+            wireCoreUi();
+            showLandingShell();
 
             const client = await ensureSupabaseClient();
             if (!client) {
