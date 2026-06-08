@@ -1135,6 +1135,10 @@
             flex-wrap: wrap;
         }
 
+        .mobile-signals-button {
+            display: none;
+        }
+
         .tf-button {
             min-width: 56px;
             height: 34px;
@@ -5015,6 +5019,24 @@
             }
 
             /* ── Trade toolbar: BUY/SELL compact buttons ── */
+            #app[data-page="trade"] #signalsTradeButton {
+                display: inline-flex;
+                min-width: 52px;
+                width: auto;
+                height: 26px;
+                padding: 0 8px;
+                align-items: center;
+                justify-content: center;
+                border-radius: 6px;
+                border: 1px solid rgba(245, 158, 11, 0.32);
+                background: rgba(245, 158, 11, 0.12);
+                color: #fbbf24;
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.02em;
+                flex-shrink: 0;
+            }
+
             #app[data-page="trade"] .trade-toolbar {
                 gap: 0;
                 margin-top: 0;
@@ -5230,6 +5252,10 @@
                 box-shadow: none;
                 backdrop-filter: none;
                 padding-bottom: max(5px, env(safe-area-inset-bottom));
+            }
+
+            .mobile-bottom-nav .mobile-nav-button[data-nav-page="signals"] {
+                display: none;
             }
 
             .mobile-nav-button {
@@ -6226,7 +6252,6 @@
                     <button class="landing-mobile-menu-item" type="button" data-auth-open="login">Login</button>
                     <button class="landing-mobile-menu-item primary" type="button" data-auth-open="signup">Sign Up</button>
                     <button id="landingDownloadButton" class="landing-mobile-menu-item" type="button">Download</button>
-                    <a class="landing-mobile-menu-item" href="signals.html">Signals <span style="color:#f59e0b;">Coming Soon</span></a>
                     <div class="landing-mobile-legal">
                         <div class="landing-mobile-legal-title">Legal</div>
                         <a class="landing-mobile-legal-link" href="privacy-policy.html">Privacy Policy</a>
@@ -6580,6 +6605,7 @@
                     <button class="tf-button" data-timeframe="1h" type="button">1h</button>
                     <button id="indicatorBtn" class="tf-button" type="button">Indicators</button>
                     <button id="drawToolsBtn" class="tf-button" type="button">Draw</button>
+                    <button id="signalsTradeButton" class="tf-button mobile-signals-button" type="button">Signals</button>
                 </div>
             </div>
 
@@ -7108,6 +7134,7 @@
         const watchlistToggleButton = document.getElementById("watchlistToggleButton");
         const applyButton = document.getElementById("applyButton");
         const indicatorBtn = document.getElementById("indicatorBtn");
+        const signalsTradeButton = document.getElementById("signalsTradeButton");
         const indicatorPanel = document.getElementById("indicatorPanel");
         const closeIndicatorPanelButton = document.getElementById("closeIndicatorPanelButton");
         const indicatorChipBar = document.getElementById("indicatorChipBar");
@@ -7855,7 +7882,8 @@
                 createNavButton("signals", "💎", "Signals", "", true),
                 createNavButton("profile", "👤", "Profile", "", true),
             ];
-            mobileButtons.forEach((button) => mobileNav.appendChild(button));
+            const visibleMobileButtons = mobileButtons.filter((button) => button.dataset.navPage !== "signals");
+            visibleMobileButtons.forEach((button) => mobileNav.appendChild(button));
             pendingOrdersMobileButton = createNavButton("pending-orders-modal", "⏳", "Pending", "", true);
             pendingOrdersMobileButton.dataset.navAction = "pending-orders";
             mobileNav.appendChild(pendingOrdersMobileButton);
@@ -8008,7 +8036,7 @@
             closeHistoryPreviewButton = previewModal.querySelector("#closeHistoryPreviewButton");
             historyPreviewTableBody = previewModal.querySelector("#historyPreviewTableBody");
 
-            pageNavButtons = [...desktopButtons, ...mobileButtons];
+            pageNavButtons = [...desktopButtons, ...visibleMobileButtons];
             appRoot.dataset.layoutBuilt = "true";
             setActivePage(activeAppPage, true);
         }
@@ -16029,6 +16057,11 @@
                     drawPanel.classList.toggle("hidden");
                 });
             };
+            if (signalsTradeButton) {
+                signalsTradeButton.addEventListener("click", () => {
+                    window.location.href = "signals.html";
+                });
+            }
             if (closeDrawPanelButton) {
                 closeDrawPanelButton.addEventListener("click", (e) => {
                     e.preventDefault();
