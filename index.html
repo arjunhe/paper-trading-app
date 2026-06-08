@@ -6138,7 +6138,7 @@
 
             <footer class="landing-footer">
                 <div>
-                    <a href="#" data-legal-page="privacy">Privacy Policy</a>
+                    <a href="privacy-policy.html">Privacy Policy</a>
                     <a href="#" data-legal-page="terms">Terms &amp; Conditions</a>
                     <a href="#" data-legal-page="disclaimer">Disclaimer</a>
                 </div>
@@ -6184,7 +6184,7 @@
                     </label>
                     <label class="remember-row">
                         <input id="privacyAcceptedInput" type="checkbox">
-                        <span>I agree to the <button class="auth-switch" type="button" data-legal-page="privacy">Privacy Policy</button></span>
+                        <span>I agree to the <a class="auth-switch" href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a></span>
                     </label>
                 </div>
                 <div class="remember-row">
@@ -6208,7 +6208,7 @@
                 <button id="forgotPasswordButton" class="auth-switch" type="button">Forgot Password</button>
             </div>
             <div id="authLegalLinks" class="auth-footer">
-                <button class="auth-switch" type="button" data-legal-page="privacy">Privacy Policy</button>
+                <a class="auth-switch" href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a>
                 <button class="auth-switch" type="button" data-legal-page="terms">Terms & Conditions</button>
                 <button class="auth-switch" type="button" data-legal-page="disclaimer">Disclaimer</button>
             </div>
@@ -6726,6 +6726,7 @@
         let profileSupportFallback = null;
         let logoutOtherDevicesButton = null;
         let logoutAllDevicesButton = null;
+        let deleteAccountButton = null;
         let loginActivityList = null;
         let chartResizeObserver = null;
         let fullscreenFallbackActive = false;
@@ -7054,6 +7055,7 @@
         const HISTORY_LEFT_EDGE_THRESHOLD = 80;
         const SUPABASE_URL = "https://vsdszhobgrlawxskmdat.supabase.co";
         const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XnHrFq_xoNT5TNUA-LAD8g_9HJOpbEj";
+        const DEBUG = false;
         const indicators = {
             rsi: null,
             volume: null,
@@ -7062,6 +7064,24 @@
             macd: null,
             bb: null,
         };
+
+        function debugLog(...args) {
+            if (DEBUG) {
+                console.log(...args);
+            }
+        }
+
+        function debugWarn(...args) {
+            if (DEBUG) {
+                console.warn(...args);
+            }
+        }
+
+        function debugError(...args) {
+            if (DEBUG) {
+                console.error(...args);
+            }
+        }
 
         function createNavButton(page, icon, label, hint = "", mobile = false) {
             const button = document.createElement("button");
@@ -7456,6 +7476,13 @@
                                 <button id="profileLogoutOtherDevicesButton" class="ghost-button" type="button">Logout Other Devices</button>
                                 <button id="profileLogoutAllDevicesButton" class="danger-button" type="button">Logout All Devices</button>
                             </div>
+                            <div class="profile-item">
+                                <div class="profile-item-label">Account Deletion</div>
+                                <div class="profile-item-value">Permanently delete your NAT Trade account and all saved app data.</div>
+                                <div class="profile-device-actions">
+                                    <button id="profileDeleteAccountButton" class="danger-button" type="button">Delete Account</button>
+                                </div>
+                            </div>
                         </section>
                         <section class="profile-content-panel" data-profile-panel="about">
                             <div class="section-title" style="margin: 0;">About NAT Trade</div>
@@ -7492,6 +7519,7 @@
             profileSupportFallback = profileCard.querySelector("#profileSupportFallback");
             logoutOtherDevicesButton = profileCard.querySelector("#profileLogoutOtherDevicesButton");
             logoutAllDevicesButton = profileCard.querySelector("#profileLogoutAllDevicesButton");
+            deleteAccountButton = profileCard.querySelector("#profileDeleteAccountButton");
             logoutButton.className = "profile-menu-button";
             logoutButton.innerHTML = `<span class="profile-menu-icon">↩</span><span>Logout</span>`;
             profileCard.querySelector("#profileLogoutSlot").appendChild(logoutButton);
@@ -7883,11 +7911,11 @@
         function notifySupabaseUnavailable(error) {
             const message = error?.message || "Supabase is unavailable. Watchlist sync is temporarily offline.";
             try {
-                console.error(JSON.stringify(error));
+                debugError(JSON.stringify(error));
             } catch (_serializationError) {
-                console.error(error);
+                debugError(error);
             }
-            console.error(error?.message || "Unknown Supabase error");
+            debugError(error?.message || "Unknown Supabase error");
             if (!supabaseErrorShown) {
                 supabaseErrorShown = true;
                 showToast(message, "error");
@@ -7896,13 +7924,13 @@
         }
 
         function logSupabaseError(context, error) {
-            console.error(`[supabase] ${context}`);
+            debugError(`[supabase] ${context}`);
             try {
-                console.error(JSON.stringify(error));
+                debugError(JSON.stringify(error));
             } catch (_serializationError) {
-                console.error(error);
+                debugError(error);
             }
-            console.error(error?.message || "Unknown Supabase error");
+            debugError(error?.message || "Unknown Supabase error");
         }
 
         async function loadScriptOnce(url, marker) {
@@ -8014,7 +8042,7 @@
                     .select("id, username, email, phone_number, email_verified, phone_verified, active_device_id")
                     .eq("email", normalizedEmail)
                     .limit(1);
-            console.log("[supabase] users lookup response", lookup);
+            debugLog("[supabase] users lookup response", lookup);
 
             if (lookup.error) {
                 logSupabaseError("users lookup failed", lookup.error);
@@ -8034,7 +8062,7 @@
                 const insert = await client
                     .from("users")
                     .insert([insertPayload]);
-                console.log("[supabase] users insert response", insert);
+                debugLog("[supabase] users insert response", insert);
 
                 if (insert.error) {
                     logSupabaseError("users insert failed", insert.error);
@@ -8052,7 +8080,7 @@
                         .select("id, username, email, phone_number, email_verified, phone_verified, active_device_id")
                         .eq("email", normalizedEmail)
                         .limit(1);
-                console.log("[supabase] users inserted lookup response", insertedLookup);
+                debugLog("[supabase] users inserted lookup response", insertedLookup);
 
                 if (insertedLookup.error) {
                     logSupabaseError("users inserted lookup failed", insertedLookup.error);
@@ -8074,7 +8102,7 @@
                 activeDeviceId: userRecord.active_device_id || currentUser.activeDeviceId || null,
                 watchlist: Array.isArray(currentUser.watchlist) ? currentUser.watchlist : [],
             };
-            console.log("[supabase] resolved db user id", currentUser.dbUserId);
+            debugLog("[supabase] resolved db user id", currentUser.dbUserId);
 
             return currentUser.dbUserId;
         }
@@ -8090,7 +8118,7 @@
 
         async function checkSignupEmailRegistered(client, email) {
             const rpcResult = await client.rpc("is_email_registered", { check_email: email });
-            console.log("[supabase] signup email availability rpc response", rpcResult);
+            debugLog("[supabase] signup email availability rpc response", rpcResult);
 
             if (!rpcResult.error) {
                 return Boolean(rpcResult.data);
@@ -8106,7 +8134,7 @@
                 .select("id")
                 .eq("email", email)
                 .limit(1);
-            console.log("[supabase] signup email fallback lookup response", fallback);
+            debugLog("[supabase] signup email fallback lookup response", fallback);
 
             if (fallback.error) {
                 logSupabaseError("signup email fallback lookup failed", fallback.error);
@@ -8119,7 +8147,7 @@
 
         async function checkSignupPhoneRegistered(client, phoneNumber) {
             const rpcResult = await client.rpc("is_phone_registered", { check_phone: phoneNumber });
-            console.log("[supabase] signup phone availability rpc response", rpcResult);
+            debugLog("[supabase] signup phone availability rpc response", rpcResult);
 
             if (!rpcResult.error) {
                 return Boolean(rpcResult.data);
@@ -8135,7 +8163,7 @@
                 .select("id")
                 .eq("phone_number", phoneNumber)
                 .limit(1);
-            console.log("[supabase] signup phone fallback lookup response", fallback);
+            debugLog("[supabase] signup phone fallback lookup response", fallback);
 
             if (fallback.error) {
                 logSupabaseError("signup phone fallback lookup failed", fallback.error);
@@ -8175,7 +8203,7 @@
                 .select("symbol")
                 .eq("user_id", userId)
                 .order("created_at", { ascending: true });
-            console.log("[supabase] watchlist select response", result);
+            debugLog("[supabase] watchlist select response", result);
 
             if (result.error) {
                 logSupabaseError("watchlist select failed", result.error);
@@ -8204,7 +8232,7 @@
             try {
                 const userId = await ensureCurrentUserDatabaseRecord();
                 const client = await ensureSupabaseClient();
-                console.log("[supabase] paper_balance resolved user id", userId);
+                debugLog("[supabase] paper_balance resolved user id", userId);
 
                 if (!client || !userId) {
                     return;
@@ -8216,7 +8244,7 @@
                     .eq("user_id", userId)
                     .order("updated_at", { ascending: false })
                     .limit(1);
-                console.log("[supabase] paper_balance select response", response);
+                debugLog("[supabase] paper_balance select response", response);
 
                 if (response.error) {
                     logSupabaseError("paper_balance select failed", response.error);
@@ -8230,11 +8258,11 @@
                         balance: tradingState.initialBalance,
                         updated_at: new Date().toISOString(),
                     };
-                    console.log("[supabase] paper_balance insert payload", insertPayload);
+                    debugLog("[supabase] paper_balance insert payload", insertPayload);
                     const insert = await client
                         .from("paper_balance")
                         .insert([insertPayload]);
-                    console.log("[supabase] paper_balance insert response", insert);
+                    debugLog("[supabase] paper_balance insert response", insert);
 
                     if (insert.error) {
                         logSupabaseError("paper_balance insert failed", insert.error);
@@ -8261,7 +8289,7 @@
             try {
                 const userId = await ensureCurrentUserDatabaseRecord();
                 const client = await ensureSupabaseClient();
-                console.log("[supabase] save paper_balance resolved user id", userId);
+                debugLog("[supabase] save paper_balance resolved user id", userId);
 
                 if (!client || !userId) {
                     return;
@@ -8273,7 +8301,7 @@
                     .eq("user_id", userId)
                     .order("updated_at", { ascending: false })
                     .limit(1);
-                console.log("[supabase] paper_balance existing row response", existing);
+                debugLog("[supabase] paper_balance existing row response", existing);
 
                 if (existing.error) {
                     logSupabaseError("paper_balance existing row lookup failed", existing.error);
@@ -8285,7 +8313,7 @@
                     balance: tradingState.cashBalance,
                     updated_at: new Date().toISOString(),
                 };
-                console.log("[supabase] paper_balance save payload", payload);
+                debugLog("[supabase] paper_balance save payload", payload);
 
                 const existingRow = Array.isArray(existing.data) ? existing.data[0] : existing.data;
                 const result = existingRow
@@ -8299,7 +8327,7 @@
                     : await client
                         .from("paper_balance")
                         .insert([payload]);
-                console.log("[supabase] paper_balance save response", result);
+                debugLog("[supabase] paper_balance save response", result);
 
                 if (result.error) {
                     logSupabaseError("paper_balance save failed", result.error);
@@ -8419,7 +8447,7 @@
             try {
                 const userId = await ensureCurrentUserDatabaseRecord();
                 const client = await ensureSupabaseClient();
-                console.log("[supabase] trade_history resolved user id", userId);
+                debugLog("[supabase] trade_history resolved user id", userId);
 
                 if (!client || !userId) {
                     return;
@@ -8430,7 +8458,7 @@
                     .select("id, user_id, symbol, side, entry_price, exit_price, quantity, profit_loss, created_at, trading_mode, position_side, leverage, margin_mode, margin_used, liquidation_price, close_reason, profit_percent")
                     .eq("user_id", userId)
                     .order("created_at", { ascending: true });
-                console.log("[supabase] trade_history select response", response);
+                debugLog("[supabase] trade_history select response", response);
 
                 if (response.error) {
                     logSupabaseError("trade_history select failed", response.error);
@@ -8484,7 +8512,7 @@
             try {
                 const userId = await ensureCurrentUserDatabaseRecord();
                 const client = await ensureSupabaseClient();
-                console.log("[supabase] save trade_history resolved user id", userId);
+                debugLog("[supabase] save trade_history resolved user id", userId);
 
                 if (!client || !userId) {
                     return;
@@ -8508,12 +8536,12 @@
                     profit_percent: trade.percentage,
                     created_at: new Date(trade.exitTime || Date.now()).toISOString(),
                 };
-                console.log("[supabase] trade_history insert payload", payload);
+                debugLog("[supabase] trade_history insert payload", payload);
 
                 const insert = await client
                     .from("trade_history")
                     .insert([payload]);
-                console.log("[supabase] trade_history insert response", insert);
+                debugLog("[supabase] trade_history insert response", insert);
 
                 if (insert.error) {
                     logSupabaseError("trade_history insert failed", insert.error);
@@ -8533,7 +8561,7 @@
             try {
                 const userId = await ensureCurrentUserDatabaseRecord();
                 const client = await ensureSupabaseClient();
-                console.log("[supabase] subscription resolved user id", userId);
+                debugLog("[supabase] subscription resolved user id", userId);
 
                 if (!client || !userId) {
                     return;
@@ -8545,7 +8573,7 @@
                     .eq("user_id", userId)
                     .order("created_at", { ascending: false })
                     .limit(1);
-                console.log("[supabase] subscription select response", response);
+                debugLog("[supabase] subscription select response", response);
 
                 if (response.error) {
                     logSupabaseError("subscription select failed", response.error);
@@ -8560,11 +8588,11 @@
                         status: "active",
                         expiry_date: null,
                     };
-                    console.log("[supabase] subscription insert payload", insertPayload);
+                    debugLog("[supabase] subscription insert payload", insertPayload);
                     const insert = await client
                         .from("subscription")
                         .insert([insertPayload]);
-                    console.log("[supabase] subscription insert response", insert);
+                    debugLog("[supabase] subscription insert response", insert);
 
                     if (insert.error) {
                         logSupabaseError("subscription insert failed", insert.error);
@@ -8596,8 +8624,8 @@
             const userId = await ensureCurrentUserDatabaseRecord();
             const client = await ensureSupabaseClient();
             const device = getCurrentDeviceContext();
-            console.log("[supabase] active session resolved user id", userId);
-            console.log("[supabase] active session device context", device);
+            debugLog("[supabase] active session resolved user id", userId);
+            debugLog("[supabase] active session device context", device);
 
             if (!client || !userId) {
                 return;
@@ -8609,7 +8637,7 @@
                     active_device_id: device.deviceId,
                 })
                 .eq("id", userId);
-            console.log("[supabase] users active_device_id update response", userUpdate);
+            debugLog("[supabase] users active_device_id update response", userUpdate);
 
             if (userUpdate.error) {
                 logSupabaseError("users active_device_id update failed", userUpdate.error);
@@ -8622,7 +8650,7 @@
                 .eq("user_id", userId)
                 .eq("device_id", device.deviceId)
                 .limit(1);
-            console.log("[supabase] active_sessions existing row response", existingSession);
+            debugLog("[supabase] active_sessions existing row response", existingSession);
 
             if (existingSession.error) {
                 logSupabaseError("active_sessions lookup failed", existingSession.error);
@@ -8647,7 +8675,7 @@
                 : await client
                     .from("active_sessions")
                     .insert([sessionPayload]);
-            console.log("[supabase] active_sessions write response", sessionWrite);
+            debugLog("[supabase] active_sessions write response", sessionWrite);
 
             if (sessionWrite.error) {
                 logSupabaseError("active_sessions write failed", sessionWrite.error);
@@ -8662,11 +8690,11 @@
                     browser: device.browser,
                     login_time: new Date().toISOString(),
                 };
-                console.log("[supabase] login_activity insert payload", activityPayload);
+                debugLog("[supabase] login_activity insert payload", activityPayload);
                 const activityWrite = await client
                     .from("login_activity")
                     .insert([activityPayload]);
-                console.log("[supabase] login_activity insert response", activityWrite);
+                debugLog("[supabase] login_activity insert response", activityWrite);
 
                 if (activityWrite.error) {
                     logSupabaseError("login_activity insert failed", activityWrite.error);
@@ -8697,7 +8725,7 @@
                 .select("device_id, device_name, platform, browser, last_seen, created_at")
                 .eq("user_id", userId)
                 .order("last_seen", { ascending: false });
-            console.log("[supabase] active_sessions select response", activeSessionResponse);
+            debugLog("[supabase] active_sessions select response", activeSessionResponse);
 
             if (activeSessionResponse.error) {
                 logSupabaseError("active_sessions select failed", activeSessionResponse.error);
@@ -8710,7 +8738,7 @@
                 .eq("user_id", userId)
                 .order("login_time", { ascending: false })
                 .limit(10);
-            console.log("[supabase] login_activity select response", loginActivityResponse);
+            debugLog("[supabase] login_activity select response", loginActivityResponse);
 
             if (loginActivityResponse.error) {
                 logSupabaseError("login_activity select failed", loginActivityResponse.error);
@@ -8752,7 +8780,7 @@
                 .select("active_device_id")
                 .eq("id", userId)
                 .limit(1);
-            console.log("[supabase] single-device check response", response);
+            debugLog("[supabase] single-device check response", response);
 
             if (response.error) {
                 logSupabaseError("single-device check failed", response.error);
@@ -8808,7 +8836,7 @@
                     .select("active_device_id")
                     .eq("id", userId)
                     .limit(1);
-                console.log("[supabase] logout active_device_id lookup response", activeDeviceResponse);
+                debugLog("[supabase] logout active_device_id lookup response", activeDeviceResponse);
 
                 if (!activeDeviceResponse.error) {
                     const row = Array.isArray(activeDeviceResponse.data) ? activeDeviceResponse.data[0] : activeDeviceResponse.data;
@@ -8817,7 +8845,7 @@
                             .from("users")
                             .update({ active_device_id: null })
                             .eq("id", userId);
-                        console.log("[supabase] logout active_device_id clear response", clearResponse);
+                        debugLog("[supabase] logout active_device_id clear response", clearResponse);
                         if (clearResponse.error) {
                             logSupabaseError("logout active_device_id clear failed", clearResponse.error);
                         }
@@ -8829,7 +8857,7 @@
                     .delete()
                     .eq("user_id", userId)
                     .eq("device_id", deviceId);
-                console.log("[supabase] active_sessions delete response", deleteResponse);
+                debugLog("[supabase] active_sessions delete response", deleteResponse);
                 if (deleteResponse.error) {
                     logSupabaseError("active_sessions delete failed", deleteResponse.error);
                 }
@@ -9254,7 +9282,7 @@
                     return;
                 }
                 const userId = await ensureCurrentUserDatabaseRecord();
-                console.log("[supabase] add watchlist resolved user id", userId);
+                debugLog("[supabase] add watchlist resolved user id", userId);
                 if (!userId) {
                     logSupabaseError("watchlist insert blocked", new Error("Missing database user id before insert."));
                     return;
@@ -9265,7 +9293,7 @@
                     .eq("user_id", userId)
                     .eq("symbol", normalizedSymbol)
                     .limit(1);
-                console.log("[supabase] watchlist existing row select response", existing);
+                debugLog("[supabase] watchlist existing row select response", existing);
 
                 if (existing.error) {
                     logSupabaseError("watchlist duplicate check failed", existing.error);
@@ -9278,11 +9306,11 @@
                         user_id: userId,
                         symbol: normalizedSymbol,
                     };
-                    console.log("[supabase] watchlist insert payload", insertPayload);
+                    debugLog("[supabase] watchlist insert payload", insertPayload);
                     const insert = await client
                         .from("watchlist")
                         .insert([insertPayload]);
-                    console.log("[supabase] watchlist insert response", insert);
+                    debugLog("[supabase] watchlist insert response", insert);
 
                     if (insert.error) {
                         logSupabaseError("watchlist insert failed", insert.error);
@@ -9313,7 +9341,7 @@
                     return;
                 }
                 const userId = await ensureCurrentUserDatabaseRecord();
-                console.log("[supabase] remove watchlist resolved user id", userId);
+                debugLog("[supabase] remove watchlist resolved user id", userId);
                 if (!userId) {
                     logSupabaseError("watchlist delete blocked", new Error("Missing database user id before delete."));
                     return;
@@ -9323,7 +9351,7 @@
                     .delete()
                     .eq("user_id", userId)
                     .eq("symbol", normalizedSymbol);
-                console.log("[supabase] watchlist delete response", deletion);
+                debugLog("[supabase] watchlist delete response", deletion);
 
                 if (deletion.error) {
                     logSupabaseError("watchlist delete failed", deletion.error);
@@ -13836,7 +13864,7 @@
                     : price * (1 - normalizedTrailingPercent / 100))
                 : null;
 
-            console.log("[trade] executeBuy", {
+            debugLog("[trade] executeBuy", {
                 currentPrice: price,
                 stopLoss: normalizedStopLoss,
                 takeProfit: normalizedTakeProfit,
@@ -14012,7 +14040,7 @@
             const takeProfit = protection.takeProfit;
             const validationMessage = getTradeValidationMessage();
 
-            console.log("[trade] submitTradeTicket", {
+            debugLog("[trade] submitTradeTicket", {
                 currentPrice: livePrice,
                 stopLoss,
                 takeProfit,
@@ -14794,7 +14822,7 @@
                     });
                 }
                 if (errorDescription) {
-                    console.warn("[supabase] auth redirect error", errorDescription);
+                    debugWarn("[supabase] auth redirect error", errorDescription);
                 }
                 return true;
             }
@@ -14842,7 +14870,7 @@
             try {
                 const result = await sendPasswordRecoveryEmail(email);
                 if (result?.error) {
-                    console.log("Full Supabase reset error:", result.error);
+                    debugLog("Full Supabase reset error:", result.error);
                     logSupabaseError("forgot password email send failed", result.error);
                     showAuthMessage(formatAuthErrorMessage(result.error));
                     return;
@@ -14851,7 +14879,7 @@
                 showAuthMessage("Password Reset Email Sent. Please check your email and click the password reset link to create a new password.", false);
                 startForgotPasswordCooldown(30);
             } catch (error) {
-                console.log("Full Supabase reset error:", error);
+                debugLog("Full Supabase reset error:", error);
                 logSupabaseError("forgot password email send failed", error);
                 showAuthMessage(formatAuthErrorMessage(error));
             }
@@ -14984,7 +15012,7 @@
                         },
                     }
                 );
-                console.log("[supabase] auth signup response", signupResult);
+                debugLog("[supabase] auth signup response", signupResult);
 
                 if (signupResult.error) {
                     logSupabaseError("auth signup failed", signupResult.error);
@@ -15055,7 +15083,7 @@
                     email,
                     password,
                 });
-                console.log("[supabase] auth login response", loginResult);
+                debugLog("[supabase] auth login response", loginResult);
 
                 if (loginResult.error || !loginResult.user) {
                     if (loginResult.error) {
@@ -15101,7 +15129,7 @@
                 const client = await ensureSupabaseClient();
                 if (client) {
                     const result = await client.auth.signOut();
-                    console.log("[supabase] auth logout response", result);
+                    debugLog("[supabase] auth logout response", result);
                     if (result?.error) {
                         logSupabaseError("auth logout failed", result.error);
                     }
@@ -15344,6 +15372,48 @@
             }
 
             await handleLogout(false);
+        }
+
+        async function deleteCurrentAccount() {
+            if (!currentUser?.email) {
+                return;
+            }
+
+            const confirmation = window.prompt(
+                "This permanently deletes your NAT Trade account, watchlist, paper trading state, trade history, sessions, and profile data. Type DELETE to confirm."
+            );
+
+            if (confirmation !== "DELETE") {
+                showToast("Account deletion cancelled.", "info");
+                return;
+            }
+
+            const secondConfirmation = window.confirm("Final confirmation: permanently delete this account and all associated data?");
+            if (!secondConfirmation) {
+                showToast("Account deletion cancelled.", "info");
+                return;
+            }
+
+            try {
+                const client = await ensureSupabaseClient();
+                if (!client) {
+                    showToast("Authentication service is unavailable.", "error");
+                    return;
+                }
+
+                const result = await client.rpc("delete_current_user_account");
+                if (result?.error) {
+                    logSupabaseError("account deletion failed", result.error);
+                    showToast(result.error.message || "Unable to delete account.", "error");
+                    return;
+                }
+
+                showToast("Account deleted.", "success");
+                await handleLogout(false);
+            } catch (error) {
+                logSupabaseError("account deletion failed", error);
+                showToast("Unable to delete account.", "error");
+            }
         }
 
         // History Management
@@ -16315,6 +16385,9 @@
             if (logoutAllDevicesButton) {
                 logoutAllDevicesButton.addEventListener("click", logoutAllDeviceSessions);
             }
+            if (deleteAccountButton) {
+                deleteAccountButton.addEventListener("click", deleteCurrentAccount);
+            }
             if (closePendingOrdersModalButton) {
                 closePendingOrdersModalButton.addEventListener("click", closePendingOrdersModal);
             }
@@ -16630,7 +16703,7 @@
                 await ensureChartLibrary();
                 initializeChart();
             } catch (error) {
-                console.error(error);
+                debugError(error);
                 setOverlay("Unable to load chart library. Check internet access.", true);
                 setStatus(error.message, true);
                 showMaintenancePage(
@@ -16671,7 +16744,7 @@
                         return;
                     }
                 } catch (error) {
-                    console.error(error);
+                    debugError(error);
                 }
             }
 
@@ -16702,7 +16775,7 @@
 
             const remembered = getRememberPreference();
             const session = typeof client.auth.session === "function" ? client.auth.session() : null;
-            console.log("[supabase] bootstrap auth session", session);
+            debugLog("[supabase] bootstrap auth session", session);
 
             if (await handleAuthRedirectResult(client)) {
                 return;
