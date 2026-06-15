@@ -3970,6 +3970,70 @@
             color: var(--blue);
         }
 
+        .desktop-experience-nudge {
+            position: fixed;
+            left: 14px;
+            right: 14px;
+            bottom: calc(76px + env(safe-area-inset-bottom));
+            z-index: 1000010;
+            display: none;
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(96, 165, 250, 0.28);
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
+                rgba(10, 16, 29, 0.98);
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+            color: var(--text);
+        }
+
+        .desktop-experience-nudge.is-open {
+            display: block;
+        }
+
+        .desktop-experience-nudge h3 {
+            margin: 0 0 8px;
+            font-size: 17px;
+            line-height: 1.25;
+        }
+
+        .desktop-experience-nudge p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .desktop-experience-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .desktop-experience-actions button {
+            min-height: 38px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            color: var(--text);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .desktop-experience-continue {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(37, 99, 235, 0.92));
+        }
+
+        .desktop-experience-dismiss {
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        @media (min-width: 769px) {
+            .desktop-experience-nudge {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 1240px) {
             .landing-page {
                 width: min(1120px, calc(100% - 32px));
@@ -5102,8 +5166,12 @@
                 flex-shrink: 0;
             }
 
+            #app[data-page="trade"] #indicatorBtn {
+                min-width: 68px;
+            }
+
             #app[data-page="trade"] #indicatorBtn::before {
-                content: "Indi";
+                content: "Indicators";
             }
 
             #app[data-page="trade"] #drawToolsBtn::before {
@@ -7093,6 +7161,19 @@
     </aside>
 
     <div id="toastStack" class="toast-stack"></div>
+    <div id="desktopExperienceNudge" class="desktop-experience-nudge" role="dialog" aria-live="polite" aria-label="Desktop experience recommendation">
+        <h3>💻 Best Experience on Desktop</h3>
+        <p>
+            For advanced chart analysis, more trading tools, and a larger workspace, we recommend using NAT Trade on a desktop or laptop.
+        </p>
+        <p style="margin-top: 8px;">
+            You can continue using mobile anytime, but desktop provides the complete trading experience.
+        </p>
+        <div class="desktop-experience-actions">
+            <button id="desktopExperienceContinueButton" class="desktop-experience-continue" type="button">Continue on Mobile</button>
+            <button id="desktopExperienceDismissButton" class="desktop-experience-dismiss" type="button">Don't show again</button>
+        </div>
+    </div>
 
     <script>
         let bridge = null;
@@ -7299,6 +7380,9 @@
         const drawerBackdrop = document.getElementById("drawerBackdrop");
         const historyDrawer = document.getElementById("historyDrawer");
         const toastStack = document.getElementById("toastStack");
+        const desktopExperienceNudge = document.getElementById("desktopExperienceNudge");
+        const desktopExperienceContinueButton = document.getElementById("desktopExperienceContinueButton");
+        const desktopExperienceDismissButton = document.getElementById("desktopExperienceDismissButton");
 
         const clearOrdersButton = document.getElementById("clearOrdersButton");
         const watchlistList = document.getElementById("watchlistList");
