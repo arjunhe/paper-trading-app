@@ -380,12 +380,12 @@
 
         .landing-preview {
             position: absolute;
-            inset: 0 -26px auto 0;
+            inset: 0 18px 0 0;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 190px;
+            grid-template-columns: minmax(0, 1fr) minmax(148px, 170px);
             gap: 12px;
             min-height: 522px;
-            transform: perspective(1400px) rotateY(-7.5deg) rotateX(2deg) rotateZ(-1.5deg);
+            transform: perspective(1400px) rotateY(-5.5deg) rotateX(1.8deg) rotateZ(-1.2deg);
             transform-origin: center;
         }
 
@@ -402,19 +402,40 @@
         .mock-terminal {
             position: relative;
             display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-rows: 58px 1fr;
+            grid-template-columns: 46px minmax(0, 1fr);
             border-radius: 20px;
             overflow: hidden;
         }
 
         .mock-topbar {
+            grid-column: 1 / -1;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            min-height: 58px;
             padding: 0 18px;
             border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(15, 23, 42, 0.45);
+        }
+
+        .mock-rail {
+            display: grid;
+            align-content: start;
+            justify-items: center;
+            gap: 18px;
+            padding-top: 24px;
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        .mock-rail span {
+            width: 22px;
+            height: 22px;
+            display: grid;
+            place-items: center;
+            opacity: 0.85;
         }
 
         .mock-pair {
@@ -422,12 +443,19 @@
             align-items: center;
             gap: 10px;
             font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .mock-pair .landing-logo::before {
+            font-size: 27px;
+            letter-spacing: -0.15em;
         }
 
         .mock-price {
             color: #22c55e;
             font-size: 17px;
             font-weight: 950;
+            white-space: nowrap;
         }
 
         .mock-tools {
@@ -435,20 +463,22 @@
             gap: 14px;
             color: #94a3b8;
             font-size: 12px;
+            white-space: nowrap;
         }
 
         .mock-chart {
             position: relative;
             min-height: 464px;
             background:
-                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-            background-size: 84px 56px;
+                linear-gradient(rgba(148, 163, 184, 0.075) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.075) 1px, transparent 1px),
+                radial-gradient(circle at 50% 30%, rgba(14, 165, 233, 0.08), transparent 36%);
+            background-size: 84px 56px, 84px 56px, 100% 100%;
             overflow: hidden;
         }
 
         .mock-chart::before {
-            content: "";
+            content: none;
             position: absolute;
             left: 0;
             right: 0;
@@ -457,61 +487,61 @@
         }
 
         .mock-chart::after {
-            content: "25,400.00\A 25,200.00\A 25,000.00\A 24,800.00\A 24,600.00\A 24,400.00";
-            white-space: pre;
+            content: none;
+        }
+
+        .mock-chart-svg {
             position: absolute;
-            right: 16px;
-            top: 70px;
-            color: rgba(203, 213, 225, 0.72);
-            font-size: 11px;
-            line-height: 3.25;
-            text-align: right;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            z-index: 1;
+            overflow: visible;
         }
 
         .mock-candles {
             position: absolute;
-            inset: 68px 78px 74px 54px;
-            display: flex;
-            align-items: flex-end;
-            gap: 11px;
+            inset: 46px 84px 86px 34px;
         }
 
         .mock-candle {
-            position: relative;
-            width: 10px;
-            height: var(--h);
-            border-radius: 3px;
+            position: absolute;
+            left: var(--x);
+            top: var(--top);
+            width: 9px;
+            height: var(--body);
+            border-radius: 2px;
             background: var(--c);
-            transform: translateY(var(--y));
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.16);
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.13);
         }
 
         .mock-candle::before {
             content: "";
             position: absolute;
             left: 50%;
-            top: -28px;
-            bottom: -24px;
+            top: calc(0px - var(--wick-top, 20px));
+            bottom: calc(0px - var(--wick-bottom, 20px));
             width: 1px;
             transform: translateX(-50%);
             background: var(--c);
-            opacity: 0.75;
+            opacity: 0.82;
         }
 
         .mock-volume {
             position: absolute;
-            left: 54px;
+            left: 34px;
             right: 78px;
             bottom: 30px;
             display: flex;
             align-items: end;
-            gap: 11px;
+            gap: 8px;
             height: 58px;
             opacity: 0.45;
         }
 
         .mock-volume span {
-            width: 10px;
+            width: 8px;
             height: var(--v);
             border-radius: 2px;
             background: var(--c);
@@ -533,7 +563,7 @@
             color: white;
             font-size: 11px;
             font-weight: 950;
-            z-index: 2;
+            z-index: 3;
         }
 
         .mock-side-card {
@@ -3341,9 +3371,72 @@
             transform: translateY(-1px);
         }
 
+        @media (min-width: 1024px) {
+            #app:not(.trade-workspace-fullscreen) #drawPanel {
+                top: 12px;
+                bottom: 12px;
+                right: 14px;
+                width: min(320px, calc(100vw - 44px));
+                max-height: none;
+                border-radius: 10px;
+            }
+
+            .draw-panel-header {
+                padding: 12px 14px;
+                font-size: 13px;
+            }
+
+            .draw-panel-body {
+                padding: 8px;
+            }
+
+            .draw-panel-footer {
+                gap: 8px;
+                padding: 10px;
+            }
+
+            #drawPanel div[data-tool],
+            #clearDrawings {
+                padding: 8px 12px;
+                border-radius: 8px;
+                font-size: 12px;
+                line-height: 1.25;
+            }
+
+            #drawPanel input,
+            #drawPanel select,
+            #drawPanel button {
+                height: 36px;
+                border-radius: 8px;
+                font-size: 12px;
+            }
+
+            #drawPanel input[type="color"] {
+                padding: 3px;
+            }
+
+            .draw-color-presets {
+                gap: 8px;
+                margin-top: 2px;
+            }
+
+            .draw-color-chip {
+                height: 28px;
+            }
+        }
+
         #app.trade-workspace-fullscreen #drawPanel {
             top: 14px;
             max-height: min(64vh, calc(var(--fullscreen-viewport-height, 100vh) - 64px));
+        }
+
+        @media (min-width: 1024px) {
+            #app.trade-workspace-fullscreen #drawPanel {
+                top: 16px;
+                right: 22px;
+                width: min(326px, calc(100vw - 60px));
+                max-height: min(84vh, calc(var(--fullscreen-viewport-height, 100vh) - 56px), 660px);
+            }
         }
 
         #rsiSettings {
@@ -4991,14 +5084,15 @@
                 font-weight: 700;
             }
 
-            /* Indicator/Draw buttons: icon-only, compact */
+            /* Indicator/Draw buttons: compact text labels */
             #app[data-page="trade"] #indicatorBtn,
             #app[data-page="trade"] #drawToolsBtn {
-                min-width: 28px;
-                width: 28px;
+                min-width: 42px;
+                width: auto;
                 height: 26px;
-                padding: 0;
-                font-size: 0;
+                padding: 0 7px;
+                font-size: 10px;
+                font-weight: 800;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -5009,13 +5103,11 @@
             }
 
             #app[data-page="trade"] #indicatorBtn::before {
-                content: "\1F4C8";
-                font-size: 11px;
+                content: "Indi";
             }
 
             #app[data-page="trade"] #drawToolsBtn::before {
-                content: "\270F";
-                font-size: 11px;
+                content: "Draw";
             }
 
             /* ── Trade toolbar: BUY/SELL compact buttons ── */
@@ -5035,6 +5127,7 @@
                 font-weight: 900;
                 letter-spacing: 0.02em;
                 flex-shrink: 0;
+                margin-left: auto;
             }
 
             #app[data-page="trade"] .trade-toolbar {
@@ -6306,46 +6399,78 @@
                                 <div class="mock-price">24,892.45 <span style="font-size: 12px;">+1.35%</span></div>
                                 <div class="mock-tools"><span>1m</span><span>5m</span><span>15m</span><span>1h</span><span>Draw</span></div>
                             </div>
+                            <div class="mock-rail" aria-hidden="true">
+                                <span>+</span><span>/</span><span>[]</span><span>T</span><span>X</span><span>+</span><span>O</span>
+                            </div>
                             <div class="mock-chart">
                                 <div class="mock-price-tag">24,892.45</div>
-                                <div class="mock-candles">
-                                    <span class="mock-candle" style="--h: 52px; --y: 44px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 92px; --y: 25px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 68px; --y: 52px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 130px; --y: 4px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 84px; --y: 28px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 148px; --y: -8px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 96px; --y: 16px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 76px; --y: 46px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 156px; --y: -20px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 116px; --y: -2px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 82px; --y: 30px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 170px; --y: -42px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 126px; --y: -18px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 104px; --y: 8px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 112px; --y: 18px; --c: #22c55e;"></span>
-                                    <span class="mock-candle" style="--h: 78px; --y: 34px; --c: #ef4444;"></span>
-                                    <span class="mock-candle" style="--h: 94px; --y: 20px; --c: #22c55e;"></span>
-                                </div>
-                                <div class="mock-volume">
-                                    <span style="--v: 26px; --c: #22c55e;"></span>
-                                    <span style="--v: 42px; --c: #22c55e;"></span>
-                                    <span style="--v: 24px; --c: #ef4444;"></span>
-                                    <span style="--v: 50px; --c: #22c55e;"></span>
-                                    <span style="--v: 36px; --c: #ef4444;"></span>
-                                    <span style="--v: 58px; --c: #22c55e;"></span>
-                                    <span style="--v: 32px; --c: #22c55e;"></span>
-                                    <span style="--v: 28px; --c: #ef4444;"></span>
-                                    <span style="--v: 54px; --c: #22c55e;"></span>
-                                    <span style="--v: 46px; --c: #22c55e;"></span>
-                                    <span style="--v: 24px; --c: #ef4444;"></span>
-                                    <span style="--v: 58px; --c: #22c55e;"></span>
-                                    <span style="--v: 38px; --c: #ef4444;"></span>
-                                    <span style="--v: 33px; --c: #ef4444;"></span>
-                                    <span style="--v: 42px; --c: #22c55e;"></span>
-                                    <span style="--v: 30px; --c: #ef4444;"></span>
-                                    <span style="--v: 36px; --c: #22c55e;"></span>
-                                </div>
+                                <svg class="mock-chart-svg" viewBox="0 0 760 430" preserveAspectRatio="none" role="img" aria-label="NAT Trade candlestick preview">
+                                    <defs>
+                                        <linearGradient id="mockChartFade" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0%" stop-color="#0f172a" stop-opacity="0.08"/>
+                                            <stop offset="100%" stop-color="#020617" stop-opacity="0.28"/>
+                                        </linearGradient>
+                                        <filter id="mockCandleGlow" x="-30%" y="-30%" width="160%" height="160%">
+                                            <feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#38bdf8" flood-opacity="0.08"/>
+                                        </filter>
+                                    </defs>
+                                    <rect width="760" height="430" fill="url(#mockChartFade)"/>
+                                    <g stroke="rgba(148,163,184,0.13)" stroke-width="1">
+                                        <line x1="42" y1="54" x2="644" y2="54"/><line x1="42" y1="105" x2="644" y2="105"/>
+                                        <line x1="42" y1="156" x2="644" y2="156"/><line x1="42" y1="207" x2="644" y2="207"/>
+                                        <line x1="42" y1="258" x2="644" y2="258"/><line x1="42" y1="309" x2="644" y2="309"/>
+                                        <line x1="42" y1="360" x2="644" y2="360"/>
+                                        <line x1="100" y1="32" x2="100" y2="382"/><line x1="184" y1="32" x2="184" y2="382"/>
+                                        <line x1="268" y1="32" x2="268" y2="382"/><line x1="352" y1="32" x2="352" y2="382"/>
+                                        <line x1="436" y1="32" x2="436" y2="382"/><line x1="520" y1="32" x2="520" y2="382"/>
+                                        <line x1="604" y1="32" x2="604" y2="382"/>
+                                    </g>
+                                    <line x1="42" y1="214" x2="644" y2="214" stroke="rgba(34,197,94,0.58)" stroke-width="1" stroke-dasharray="4 4"/>
+                                    <g font-family="Segoe UI, sans-serif" font-size="12" fill="rgba(203,213,225,0.72)" text-anchor="end">
+                                        <text x="744" y="58">25,400.00</text><text x="744" y="109">25,200.00</text>
+                                        <text x="744" y="160">25,000.00</text><text x="744" y="211">24,800.00</text>
+                                        <text x="744" y="262">24,600.00</text><text x="744" y="313">24,400.00</text>
+                                    </g>
+                                    <g font-family="Segoe UI, sans-serif" font-size="11" fill="rgba(203,213,225,0.64)" text-anchor="middle">
+                                        <text x="92" y="410">12:00</text><text x="235" y="410">12</text><text x="378" y="410">14</text><text x="521" y="410">16</text><text x="635" y="410">19</text>
+                                    </g>
+                                    <g opacity="0.5">
+                                        <rect x="68" y="358" width="8" height="25" fill="#16a34a"/><rect x="92" y="348" width="8" height="35" fill="#16a34a"/>
+                                        <rect x="116" y="363" width="8" height="20" fill="#ef4444"/><rect x="140" y="342" width="8" height="41" fill="#16a34a"/>
+                                        <rect x="164" y="352" width="8" height="31" fill="#ef4444"/><rect x="188" y="337" width="8" height="46" fill="#16a34a"/>
+                                        <rect x="212" y="344" width="8" height="39" fill="#16a34a"/><rect x="236" y="356" width="8" height="27" fill="#ef4444"/>
+                                        <rect x="260" y="333" width="8" height="50" fill="#16a34a"/><rect x="284" y="339" width="8" height="44" fill="#16a34a"/>
+                                        <rect x="308" y="350" width="8" height="33" fill="#ef4444"/><rect x="332" y="322" width="8" height="61" fill="#16a34a"/>
+                                        <rect x="356" y="330" width="8" height="53" fill="#16a34a"/><rect x="380" y="346" width="8" height="37" fill="#ef4444"/>
+                                        <rect x="404" y="314" width="8" height="69" fill="#16a34a"/><rect x="428" y="321" width="8" height="62" fill="#16a34a"/>
+                                        <rect x="452" y="338" width="8" height="45" fill="#ef4444"/><rect x="476" y="329" width="8" height="54" fill="#ef4444"/>
+                                        <rect x="500" y="352" width="8" height="31" fill="#ef4444"/><rect x="524" y="336" width="8" height="47" fill="#16a34a"/>
+                                        <rect x="548" y="342" width="8" height="41" fill="#16a34a"/><rect x="572" y="354" width="8" height="29" fill="#ef4444"/>
+                                    </g>
+                                    <g stroke-linecap="round" stroke-width="1.4" filter="url(#mockCandleGlow)">
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="70" y1="268" x2="70" y2="324"/><rect x="64" y="286" width="12" height="26" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="94" y1="246" x2="94" y2="306"/><rect x="88" y="266" width="12" height="28" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="118" y1="252" x2="118" y2="316"/><rect x="112" y="272" width="12" height="30" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="142" y1="232" x2="142" y2="292"/><rect x="136" y="252" width="12" height="30" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="166" y1="242" x2="166" y2="306"/><rect x="160" y="260" width="12" height="28" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="190" y1="210" x2="190" y2="274"/><rect x="184" y="228" width="12" height="44" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="214" y1="198" x2="214" y2="258"/><rect x="208" y="214" width="12" height="36" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="238" y1="204" x2="238" y2="266"/><rect x="232" y="220" width="12" height="34" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="262" y1="178" x2="262" y2="246"/><rect x="256" y="194" width="12" height="42" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="286" y1="166" x2="286" y2="232"/><rect x="280" y="184" width="12" height="36" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="310" y1="170" x2="310" y2="240"/><rect x="304" y="188" width="12" height="38" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="334" y1="142" x2="334" y2="212"/><rect x="328" y="160" width="12" height="42" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="358" y1="118" x2="358" y2="188"/><rect x="352" y="136" width="12" height="44" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="382" y1="126" x2="382" y2="202"/><rect x="376" y="146" width="12" height="40" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="406" y1="146" x2="406" y2="224"/><rect x="400" y="164" width="12" height="46" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="430" y1="178" x2="430" y2="250"/><rect x="424" y="196" width="12" height="40" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="454" y1="204" x2="454" y2="270"/><rect x="448" y="224" width="12" height="36" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="478" y1="190" x2="478" y2="260"/><rect x="472" y="210" width="12" height="38" rx="2"/></g>
+                                        <g stroke="#ef4444" fill="#ef4444"><line x1="502" y1="202" x2="502" y2="276"/><rect x="496" y="222" width="12" height="42" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="526" y1="184" x2="526" y2="258"/><rect x="520" y="202" width="12" height="44" rx="2"/></g>
+                                        <g stroke="#22c55e" fill="#22c55e"><line x1="550" y1="174" x2="550" y2="242"/><rect x="544" y="192" width="12" height="34" rx="2"/></g>
+                                    </g>
+                                </svg>
                             </div>
                         </div>
                         <div class="mock-sidebar">
